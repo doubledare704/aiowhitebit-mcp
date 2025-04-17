@@ -1,58 +1,12 @@
 import json
-import pytest
-import pytest_asyncio
-from fastmcp import Client
-
-from aiowhitebit_mcp.server import create_server
 import logging
+
+import pytest
+
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 log = logging.getLogger(__name__)
-# Tell pytest-asyncio to use one event loop for the whole module
-pytestmark = pytest.mark.asyncio(scope="module")
 
 
-@pytest_asyncio.fixture(scope="module")
-async def server():
-    """Create a WhiteBit MCP server for testing"""
-    # Make sure create_server gets the correct loop if needed explicitly,
-    # though usually it picks up the running loop automatically.
-    _server = create_server(name="WhiteBit MCP Test")
-    try:
-        yield _server
-    finally:
-        await _server.close()
-
-
-@pytest_asyncio.fixture(scope="module")
-async def client(server):
-    """Create a client connected to the test server"""
-    # This client will now be created and connect within the module-scoped event loop
-    client = Client(server.mcp)
-    await client.__aenter__()
-    try:
-        yield client
-    finally:
-        await client.__aexit__(None, None, None)
-
-
-# # No changes needed in the tests themselves
-# @pytest.mark.asyncio
-# async def test_server_time(client):
-#     """Test getting server time"""
-#     response = await client.call_tool("get_server_time", {})
-#     assert isinstance(response, list)
-#     assert len(response) > 0
-#
-#     content = response[0]
-#     assert hasattr(content, 'text')
-#
-#     # Parse the JSON string from text
-#     data = json.loads(content.text)
-#     assert isinstance(data, dict)
-#     assert "time" in data
-#     assert isinstance(data["time"], dict)
-#     assert "time" in data["time"]
-#     assert isinstance(data["time"]["time"], int)
 @pytest.mark.asyncio
 async def test_server_time(client):
     """Test getting server time"""
@@ -60,7 +14,6 @@ async def test_server_time(client):
     try:
         log.debug("test_server_time: Awaiting client.call_tool('get_server_time')...")
         response = await client.call_tool("get_server_time", {})
-        # *** If the test hangs, you WON'T see the next log line ***
         log.debug(f"test_server_time: client.call_tool returned: {type(response)}")
 
         assert isinstance(response, list)
@@ -76,14 +29,25 @@ async def test_server_time(client):
         log.debug(f"test_server_time: Parsing JSON: {getattr(content, 'text', 'N/A')}")
         data = json.loads(content.text)
         log.debug(f"test_server_time: Parsed data: {type(data)}")
-        # ... rest of assertions ...
+
+        # Complete the assertions
+        assert isinstance(data, dict)
+        log.debug("test_server_time: Assertion 4 passed")
+        assert "time" in data
+        log.debug("test_server_time: Assertion 5 passed")
+        assert isinstance(data["time"], dict)
+        log.debug("test_server_time: Assertion 6 passed")
+        assert "time" in data["time"]
+        log.debug("test_server_time: Assertion 7 passed")
+        assert isinstance(data["time"]["time"], int)
         log.debug("test_server_time: All assertions passed")
 
     except Exception as e:
-        log.exception("test_server_time: EXCEPTION occurred") # Logs traceback
+        log.exception("test_server_time: EXCEPTION occurred")  # Logs traceback
         raise
     finally:
         log.debug("test_server_time: END")
+
 
 @pytest.mark.asyncio
 async def test_market_info(client):

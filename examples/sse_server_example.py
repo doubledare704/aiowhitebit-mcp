@@ -14,4 +14,7 @@ server = create_server(
 
 # Run the server with SSE transport
 if __name__ == "__main__":
-    server.run(transport="sse", host="127.0.0.1", port=8000)
+    server.run(transport="sse",
+               # host="127.0.0.1",
+               # port=8000
+               )

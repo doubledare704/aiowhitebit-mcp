@@ -72,66 +72,16 @@ class WhiteBitMCP:
         """Register public API tools"""
 
         @self.mcp.tool()
-        async def get_market_info() -> MarketInfo:
-            """Get information about all available markets"""
-            return await self.public_v4.get_market_info()
-
-        @self.mcp.tool()
-        async def get_market_activity() -> Dict:
-            """Get activity information for all markets (last price, volume, etc.)"""
-            return await self.public_v4.get_market_activity()
-
-        @self.mcp.tool()
-        async def get_server_time() -> ServerTime:
+        async def get_server_time() -> Dict:
             """Get current server time"""
-            return await self.public_v4.get_server_time()
+            result = await self.public_v4.get_server_time()
+            return {"time": result.model_dump()}  # Using model_dump() for Pydantic v2
 
         @self.mcp.tool()
-        async def get_server_status() -> ServerStatus:
-            """Get current server status"""
-            return await self.public_v4.get_server_status()
-
-        @self.mcp.tool()
-        async def get_asset_status_list() -> Dict:
-            """Get status of all assets"""
-            return await self.public_v4.get_asset_status_list()
-
-        @self.mcp.tool()
-        async def get_orderbook(market: MarketPair, limit: int = 100, level: int = 0) -> Orderbook:
-            """Get orderbook for a specific market
-            
-            Args:
-                market: Market pair (e.g., 'BTC_USDT')
-                limit: Number of orders to return (default: 100)
-                level: Aggregation level (default: 0)
-            """
-            return await self.public_v4.get_orderbook(
-                market=market.market,
-                limit=limit,
-                level=level
-            )
-
-        @self.mcp.tool()
-        async def get_recent_trades(market: MarketPair, limit: int = 100) -> RecentTrades:
-            """Get recent trades for a specific market
-            
-            Args:
-                market: Market pair (e.g., 'BTC_USDT')
-                limit: Number of trades to return (default: 100)
-            """
-            return await self.public_v4.get_recent_trades(
-                market=market.market,
-                limit=limit
-            )
-
-        @self.mcp.tool()
-        async def get_fee(market: MarketPair) -> Dict:
-            """Get trading fee for a specific market
-            
-            Args:
-                market: Market pair (e.g., 'BTC_USDT')
-            """
-            return await self.public_v4.get_fee(market=market.market)
+        async def get_market_info() -> Dict:
+            """Get information about all available markets"""
+            result = await self.public_v4.get_market_info()
+            return {"markets": list(result)}  # Convert MarketInfo to a regular list and wrap in dict
 
     def _register_private_tools(self):
         """Register private API tools (if credentials are provided)"""
@@ -236,16 +186,18 @@ class WhiteBitMCP:
         """Register resources"""
 
         @self.mcp.resource("whitebit://markets")
-        async def get_markets_resource() -> MarketInfo:
+        async def get_markets_resource() -> Dict:
             """Get information about all available markets"""
-            return await self.public_v4.get_market_info()
+            result = await self.public_v4.get_market_info()
+            return {"markets": list(result)}  # Convert MarketInfo to a regular list and wrap in dict
 
         @self.mcp.resource("whitebit://markets/{market}")
         async def get_market_resource(market: str) -> Dict:
             """Get information about a specific market"""
             all_markets = await self.public_v4.get_market_info()
-            if market in all_markets:
-                return {market: all_markets[market]}
+            markets_dict = {m["stock"] + "_" + m["money"]: m for m in all_markets}
+            if market in markets_dict:
+                return {market: markets_dict[market]}
             return {"error": f"Market {market} not found"}
 
         @self.mcp.resource("whitebit://assets")

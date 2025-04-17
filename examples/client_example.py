@@ -8,7 +8,7 @@ import os
 from aiowhitebit_mcp.client import WhiteBitMCPClient
 
 # Set the server URL (could be a local server or a remote one)
-os.environ["WHITEBIT_MCP_URL"] = "http://localhost:8000/mcp"  # For SSE transport
+os.environ["WHITEBIT_MCP_URL"] = "http://0.0.0.0:8000"  # For SSE transport
 # os.environ["WHITEBIT_MCP_URL"] = "ws://localhost:8000/mcp"  # For WebSocket transport
 # os.environ["WHITEBIT_MCP_URL"] = "python examples/run_server.py"  # For stdio transport
 

@@ -1,11 +1,6 @@
-import pytest
 import pytest_asyncio
 from fastmcp import Client
-
 from aiowhitebit_mcp.server import create_server
-
-# Tell pytest-asyncio to use function-scoped event loops
-pytestmark = pytest.mark.asyncio
 
 
 @pytest_asyncio.fixture
@@ -19,7 +14,5 @@ async def server():
 @pytest_asyncio.fixture
 async def client(server):
     """Create a client connected to the test server"""
-    client = Client(server.mcp)
-    await client.__aenter__()
-    yield client
-    await client.__aexit__(None, None, None)
+    async with Client(server.mcp) as client:
+        yield client

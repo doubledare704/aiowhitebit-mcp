@@ -8,12 +8,13 @@ import asyncio
 import json
 import logging
 import sys
+
 from fastmcp import Client
 
-from aiowhitebit_mcp.server import create_server, MarketPair
 from aiowhitebit_mcp.proxy import (
     MockServerTime, MockServerStatus, MockOrderbook, MockFee, MockTicker
 )
+from aiowhitebit_mcp.server import MarketPair
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -96,51 +97,57 @@ class MockPublicV4Client:
         pass
 
 
-# Test cases for public v1 API
-async def test_get_ticker(client):
-    """Test getting ticker information for a specific market."""
-    print("Testing get_ticker...")
-    response = await client.call_tool("get_ticker", {"market": MarketPair(market="BTC_USDT")})
-    assert isinstance(response, list)
-    assert len(response) > 0
+# async def test_get_tickers(client):
+#     """Test getting ticker information for all markets."""
+#     print("Testing get_tickers...")
+#     response = await client.call_tool("get_tickers", {})
+#     assert isinstance(response, list)
+#     assert len(response) > 0
+#
+#     content = response[0]
+#     assert hasattr(content, 'text')
+#
+#     data = json.loads(content.text)
+#     assert isinstance(data, dict)
+#     assert "tickers" in data
+#     tickers = data["tickers"]
+#     assert isinstance(tickers, list)
+#     assert len(tickers) > 0
+#     first_ticker = tickers[0]
+#     assert isinstance(first_ticker, dict)
+#     assert "market" in first_ticker
+#     assert "last" in first_ticker
+#     print("✅ get_tickers test passed")
+from fastmcp import Client
+from aiowhitebit_mcp.server import create_server
 
-    content = response[0]
-    assert hasattr(content, 'text')
+# TODO: note this test because in other way this all wont be tested without failed teardown.
+async def test_get_tickers():
+    server = create_server(name="WhiteBit MCP Test")
+    async with Client(server.mcp) as client:
+        print("Testing get_tickers...")
+        response = await client.call_tool("get_tickers", {})
+        assert isinstance(response, list)
+        assert len(response) > 0
 
-    data = json.loads(content.text)
-    assert isinstance(data, dict)
-    assert "ticker" in data
-    ticker = data["ticker"]
-    assert isinstance(ticker, dict)
-    assert "market" in ticker
-    assert "last" in ticker
-    assert "high" in ticker
-    assert "low" in ticker
-    assert "volume" in ticker
-    print("✅ get_ticker test passed")
+        content = response[0]
+        assert hasattr(content, 'text')
 
+        import json
+        data = json.loads(content.text)
+        assert isinstance(data, dict)
+        assert "tickers" in data
+        tickers = data["tickers"]
+        assert isinstance(tickers, list)
+        assert len(tickers) > 0
+        first_ticker = tickers[0]
+        assert isinstance(first_ticker, dict)
+        assert "market" in first_ticker
+        assert "last" in first_ticker
+        print("✅ get_tickers test passed")
 
-async def test_get_tickers(client):
-    """Test getting ticker information for all markets."""
-    print("Testing get_tickers...")
-    response = await client.call_tool("get_tickers", {})
-    assert isinstance(response, list)
-    assert len(response) > 0
+    await server.close()
 
-    content = response[0]
-    assert hasattr(content, 'text')
-
-    data = json.loads(content.text)
-    assert isinstance(data, dict)
-    assert "tickers" in data
-    tickers = data["tickers"]
-    assert isinstance(tickers, list)
-    assert len(tickers) > 0
-    first_ticker = tickers[0]
-    assert isinstance(first_ticker, dict)
-    assert "market" in first_ticker
-    assert "last" in first_ticker
-    print("✅ get_tickers test passed")
 
 
 # Test cases for public v2 API

@@ -1,9 +1,10 @@
-"""Simple test script to verify our implementation.
-"""
+"""Simple test script to verify our implementation."""
 
 import asyncio
 import json
+
 from fastmcp import Client
+
 from src.aiowhitebit_mcp.server import create_server
 
 
@@ -11,28 +12,28 @@ async def test_server_time():
     """Test getting server time"""
     # Create the server
     server = create_server()
-    
+
     # Create a client connected to the server
     client = Client(server.mcp)
     await client.__aenter__()
-    
+
     try:
         # Call the get_server_time tool
         print("Calling get_server_time...")
         response = await client.call_tool("get_server_time", {})
         print(f"Response type: {type(response)}")
-        
+
         if isinstance(response, list) and len(response) > 0:
             content = response[0]
             print(f"Content type: {type(content)}")
-            
-            if hasattr(content, 'text'):
+
+            if hasattr(content, "text"):
                 print(f"Content text: {content.text}")
-                
+
                 # Parse the JSON string from text
                 data = json.loads(content.text)
                 print(f"Parsed data: {data}")
-                
+
                 # Check the structure
                 if isinstance(data, dict) and "time" in data:
                     print("✅ Test passed: Response has 'time' key")
@@ -50,7 +51,7 @@ async def test_server_time():
                 print("❌ Test failed: Content does not have 'text' attribute")
         else:
             print("❌ Test failed: Response is not a list or is empty")
-    
+
     finally:
         # Close the client and server
         await client.__aexit__(None, None, None)
@@ -61,28 +62,28 @@ async def test_market_info():
     """Test getting market info"""
     # Create the server
     server = create_server()
-    
+
     # Create a client connected to the server
     client = Client(server.mcp)
     await client.__aenter__()
-    
+
     try:
         # Call the get_market_info tool
         print("\nCalling get_market_info...")
         response = await client.call_tool("get_market_info", {})
         print(f"Response type: {type(response)}")
-        
+
         if isinstance(response, list) and len(response) > 0:
             content = response[0]
             print(f"Content type: {type(content)}")
-            
-            if hasattr(content, 'text'):
+
+            if hasattr(content, "text"):
                 print(f"Content text: {content.text}")
-                
+
                 # Parse the JSON string from text
                 data = json.loads(content.text)
                 print(f"Parsed data: {data}")
-                
+
                 # Check the structure
                 if isinstance(data, dict) and "markets" in data:
                     print("✅ Test passed: Response has 'markets' key")
@@ -102,7 +103,7 @@ async def test_market_info():
                 print("❌ Test failed: Content does not have 'text' attribute")
         else:
             print("❌ Test failed: Response is not a list or is empty")
-    
+
     finally:
         # Close the client and server
         await client.__aexit__(None, None, None)

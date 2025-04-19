@@ -5,7 +5,6 @@ for the WhiteBit MCP server.
 """
 
 import logging
-import os
 from datetime import datetime
 
 from aiohttp import web

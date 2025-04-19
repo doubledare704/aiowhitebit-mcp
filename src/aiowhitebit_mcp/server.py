@@ -15,11 +15,9 @@ from aiowhitebit.clients.websocket import PublicWebSocketClient
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
-from aiowhitebit_mcp.metrics import track_request, get_metrics_collector
+from aiowhitebit_mcp.metrics import get_metrics_collector, track_request
 from aiowhitebit_mcp.monitoring import get_monitoring_server, register_health_check
-from aiowhitebit_mcp.proxy import (
-    PublicV1ClientProxy, PublicV2ClientProxy, PublicV4ClientProxy, PrivateV4ClientProxy
-)
+from aiowhitebit_mcp.proxy import PrivateV4ClientProxy, PublicV1ClientProxy, PublicV2ClientProxy, PublicV4ClientProxy
 from aiowhitebit_mcp.rate_limiter import configure_rate_limiter
 from aiowhitebit_mcp.web_interface import start_web_interface, stop_web_interface
 
@@ -29,11 +27,13 @@ logger = logging.getLogger(__name__)
 
 class MarketPair(BaseModel):
     """Market pair model for MCP tools."""
+
     market: str = Field(..., description="Market pair (e.g., 'BTC_USDT')")
 
 
 class OrderParams(BaseModel):
     """Parameters for creating an order."""
+
     market: str = Field(..., description="Market pair (e.g., 'BTC_USDT')")
     side: str = Field(..., description="Order side ('buy' or 'sell')")
     amount: float = Field(..., description="Order amount in base currency")
@@ -49,6 +49,7 @@ class StopOrderParams(OrderParams):
     Attributes:
         activation_price: The price at which the order will be activated
     """
+
     activation_price: float = Field(..., description="Price at which the order will be activated")
 
 
@@ -64,13 +65,13 @@ class WhiteBitMCP:
     """
 
     def __init__(
-            self,
-            name: str = "WhiteBit MCP",
-            api_key: Optional[str] = None,
-            api_secret: Optional[str] = None,
-            web_interface: bool = False,
-            web_host: str = "localhost",
-            web_port: int = 8080
+        self,
+        name: str = "WhiteBit MCP",
+        api_key: Optional[str] = None,
+        api_secret: Optional[str] = None,
+        web_interface: bool = False,
+        web_host: str = "localhost",
+        web_port: int = 8080,
     ):
         """Initialize the WhiteBit MCP server.
 
@@ -173,7 +174,7 @@ class WhiteBitMCP:
             logger.debug(f"Tool call: get_ticker for {market.market}")
             result = await self.public_v1.get_ticker(market.market)
             logger.debug("get_ticker result received")
-            return {"ticker": result.dict() if hasattr(result, 'dict') else result}
+            return {"ticker": result.dict() if hasattr(result, "dict") else result}
 
         @self.mcp.tool()
         async def get_tickers() -> Dict:
@@ -221,21 +222,21 @@ class WhiteBitMCP:
         """
         logger.debug("Registering public v4 API tools")
 
-        @self.mcp.tool()
         @track_request("get_server_time")
+        @self.mcp.tool()
         async def get_server_time() -> Dict:
             """Get current server time"""
             result = await self.public_v4.get_server_time()
-            return {"time": result.model_dump() if hasattr(result, 'model_dump') else result.dict()}
+            return {"time": result.model_dump() if hasattr(result, "model_dump") else result.model_dump()}
 
         @self.mcp.tool()
         async def get_server_status() -> Dict:
             """Get current server status"""
             result = await self.public_v4.get_server_status()
-            return {"status": result.model_dump() if hasattr(result, 'model_dump') else result.dict()}
+            return {"status": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
 
-        @self.mcp.tool()
         @track_request("get_market_info")
+        @self.mcp.tool()
         async def get_market_info() -> Dict:
             """Get information about all available markets"""
             result = await self.public_v4.get_market_info()
@@ -255,7 +256,7 @@ class WhiteBitMCP:
                 market: Market pair (e.g., 'BTC_USDT')
             """
             result = await self.public_v4.get_orderbook(market.market)
-            return {"orderbook": result.model_dump() if hasattr(result, 'model_dump') else result.dict()}
+            return {"orderbook": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
 
         @self.mcp.tool()
         async def get_recent_trades(market: MarketPair) -> Dict:
@@ -275,7 +276,7 @@ class WhiteBitMCP:
                 market: Market pair (e.g., 'BTC_USDT')
             """
             result = await self.public_v4.get_fee(market.market)
-            return {"fee": result.model_dump() if hasattr(result, 'model_dump') else result.dict()}
+            return {"fee": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
 
         @self.mcp.tool()
         async def get_asset_status_list() -> Dict:
@@ -294,7 +295,8 @@ class WhiteBitMCP:
                 end_time: End time in seconds
             """
             logger.debug(
-                f"Tool call: get_kline for {market.market} with interval={interval}, start_time={start_time}, end_time={end_time}")
+                f"Tool call: get_kline for {market.market} with interval={interval}, start_time={start_time}, end_time={end_time}"
+            )
             result = await self.public_v4.get_kline(market.market, interval, start_time, end_time)
             logger.debug(f"get_kline result: {len(result)} klines")
             return {"klines": list(result)}  # Convert Kline to a regular list and wrap in dict
@@ -328,8 +330,8 @@ class WhiteBitMCP:
 
         logger.debug("Registering private API tools")
 
-        @self.mcp.tool()
         @track_request("get_trading_balance")
+        @self.mcp.tool()
         async def get_trading_balance() -> Dict:
             """Get trading balance for all assets"""
             logger.debug("Tool call: get_trading_balance")
@@ -337,8 +339,8 @@ class WhiteBitMCP:
             logger.debug("get_trading_balance result received")
             return {"balance": result}
 
-        @self.mcp.tool()
         @track_request("create_limit_order")
+        @self.mcp.tool()
         async def create_limit_order(order: OrderParams) -> Dict:
             """Create a limit order
 
@@ -347,16 +349,13 @@ class WhiteBitMCP:
             """
             logger.debug(f"Tool call: create_limit_order for {order.market}")
             result = await self.private_v4.create_limit_order(
-                market=order.market,
-                side=order.side,
-                amount=str(order.amount),
-                price=str(order.price)
+                market=order.market, side=order.side, amount=str(order.amount), price=str(order.price)
             )
             logger.debug(f"create_limit_order result: {result}")
             return {"order": result}
 
-        @self.mcp.tool()
         @track_request("cancel_order")
+        @self.mcp.tool()
         async def cancel_order(order_id: int, market: MarketPair) -> Dict:
             """Cancel an order
 
@@ -369,8 +368,8 @@ class WhiteBitMCP:
             logger.debug(f"cancel_order result: {result}")
             return {"order": result}
 
-        @self.mcp.tool()
         @track_request("get_order_status")
+        @self.mcp.tool()
         async def get_order_status(order_id: int, market: MarketPair) -> Dict:
             """Get order status
 
@@ -383,8 +382,8 @@ class WhiteBitMCP:
             logger.debug(f"get_order_status result: {result}")
             return {"order": result}
 
-        @self.mcp.tool()
         @track_request("get_active_orders")
+        @self.mcp.tool()
         async def get_active_orders(market: MarketPair) -> Dict:
             """Get active orders for a market
 
@@ -453,7 +452,7 @@ class WhiteBitMCP:
                 duration = time.time() - start_time
                 return {
                     "duration": duration,
-                    "server_time": result.model_dump() if hasattr(result, 'model_dump') else result.dict()
+                    "server_time": result.model_dump() if hasattr(result, "model_dump") else result.dict(),
                 }
             except Exception as e:
                 raise Exception(f"Public v4 API health check failed: {e}")
@@ -489,6 +488,7 @@ class WhiteBitMCP:
         async def circuit_breakers() -> Dict:
             """Get the status of all circuit breakers."""
             from aiowhitebit_mcp.circuit_breaker import get_all_circuit_breakers
+
             result = {}
             for name, circuit in get_all_circuit_breakers().items():
                 result[name] = circuit.get_state()
@@ -502,6 +502,7 @@ class WhiteBitMCP:
                 name: The name of the circuit breaker to reset
             """
             from aiowhitebit_mcp.circuit_breaker import reset_circuit_breaker as reset_cb
+
             success = reset_cb(name)
             if success:
                 return {"status": "ok", "message": f"Circuit breaker {name} reset successfully"}
@@ -563,12 +564,12 @@ class WhiteBitMCP:
 
 
 def create_server(
-        name: str = "WhiteBit MCP",
-        api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
-        web_interface: bool = False,
-        web_host: str = "localhost",
-        web_port: int = 8080
+    name: str = "WhiteBit MCP",
+    api_key: Optional[str] = None,
+    api_secret: Optional[str] = None,
+    web_interface: bool = False,
+    web_host: str = "localhost",
+    web_port: int = 8080,
 ) -> WhiteBitMCP:
     """Create a new WhiteBit MCP server instance.
 

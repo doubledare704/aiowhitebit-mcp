@@ -1,5 +1,4 @@
-"""Example script to demonstrate how to use the private API endpoints.
-"""
+"""Example script to demonstrate how to use the private API endpoints."""
 
 import asyncio
 import json

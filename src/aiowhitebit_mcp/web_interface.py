@@ -4,20 +4,16 @@ This module provides a web interface for viewing metrics and health checks
 for the WhiteBit MCP server.
 """
 
-import asyncio
-import json
 import logging
-import os
 from datetime import datetime
-from typing import Dict, List, Optional, Any
 
 from aiohttp import web
 
+from aiowhitebit_mcp.cache import clear_cache, get_all_caches
+from aiowhitebit_mcp.circuit_breaker import get_all_circuit_breakers, reset_circuit_breaker
 from aiowhitebit_mcp.metrics import get_metrics_collector
 from aiowhitebit_mcp.monitoring import get_monitoring_server
-from aiowhitebit_mcp.circuit_breaker import get_all_circuit_breakers, reset_circuit_breaker
 from aiowhitebit_mcp.rate_limiter import get_rate_limiter
-from aiowhitebit_mcp.cache import get_all_caches, clear_cache
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -401,13 +397,10 @@ class WebInterface:
             circuit_breaker_summary=circuit_breaker_summary,
             cache_summary=cache_summary,
             metrics_labels=f"[{', '.join(metrics_labels)}]",
-            metrics_data=f"[{', '.join(map(str, metrics_data))}]"
+            metrics_data=f"[{', '.join(map(str, metrics_data))}]",
         )
 
-        html = HTML_TEMPLATE.format(
-            title="WhiteBit MCP Dashboard",
-            content=content
-        )
+        html = HTML_TEMPLATE.format(title="WhiteBit MCP Dashboard", content=content)
 
         return web.Response(text=html, content_type="text/html")
 
@@ -438,15 +431,10 @@ class WebInterface:
             """
 
         content = HEALTH_TEMPLATE.format(
-            health_status=health_status_text,
-            health_status_class=health_status_class,
-            health_checks=health_checks
+            health_status=health_status_text, health_status_class=health_status_class, health_checks=health_checks
         )
 
-        html = HTML_TEMPLATE.format(
-            title="WhiteBit MCP Health Checks",
-            content=content
-        )
+        html = HTML_TEMPLATE.format(title="WhiteBit MCP Health Checks", content=content)
 
         return web.Response(text=html, content_type="text/html")
 
@@ -463,21 +451,16 @@ class WebInterface:
             metrics_rows += f"""
             <tr>
                 <td>{endpoint}</td>
-                <td>{metrics['request_count']}</td>
+                <td>{metrics["request_count"]}</td>
                 <td>{success_rate}</td>
                 <td>{avg_duration}</td>
                 <td>{p95_duration}</td>
             </tr>
             """
 
-        content = METRICS_TEMPLATE.format(
-            metrics_rows=metrics_rows
-        )
+        content = METRICS_TEMPLATE.format(metrics_rows=metrics_rows)
 
-        html = HTML_TEMPLATE.format(
-            title="WhiteBit MCP Metrics",
-            content=content
-        )
+        html = HTML_TEMPLATE.format(title="WhiteBit MCP Metrics", content=content)
 
         return web.Response(text=html, content_type="text/html")
 
@@ -493,11 +476,9 @@ class WebInterface:
         circuit_breaker_rows = ""
         for name, circuit in circuit_breakers.items():
             state = circuit.state.value.upper()
-            state_class = {
-                "CLOSED": "circuit-closed",
-                "OPEN": "circuit-open",
-                "HALF-OPEN": "circuit-half-open"
-            }.get(state, "")
+            state_class = {"CLOSED": "circuit-closed", "OPEN": "circuit-open", "HALF-OPEN": "circuit-half-open"}.get(
+                state, ""
+            )
 
             last_failure = "Never"
             if circuit.last_failure_time > 0:
@@ -517,14 +498,9 @@ class WebInterface:
             </tr>
             """
 
-        content = CIRCUIT_BREAKERS_TEMPLATE.format(
-            circuit_breaker_rows=circuit_breaker_rows
-        )
+        content = CIRCUIT_BREAKERS_TEMPLATE.format(circuit_breaker_rows=circuit_breaker_rows)
 
-        html = HTML_TEMPLATE.format(
-            title="WhiteBit MCP Circuit Breakers",
-            content=content
-        )
+        html = HTML_TEMPLATE.format(title="WhiteBit MCP Circuit Breakers", content=content)
 
         return web.Response(text=html, content_type="text/html")
 
@@ -549,9 +525,9 @@ class WebInterface:
             for rule in endpoint_status["rules"]:
                 rules_html += f"""
                 <div>
-                    <strong>Max Requests:</strong> {rule['max_requests']}<br>
-                    <strong>Period:</strong> {rule['period_seconds']} seconds<br>
-                    <strong>Current:</strong> {rule['current_requests']}/{rule['max_requests']}
+                    <strong>Max Requests:</strong> {rule["max_requests"]}<br>
+                    <strong>Period:</strong> {rule["period_seconds"]} seconds<br>
+                    <strong>Current:</strong> {rule["current_requests"]}/{rule["max_requests"]}
                 </div>
                 <hr>
                 """
@@ -565,14 +541,9 @@ class WebInterface:
             </tr>
             """
 
-        content = RATE_LIMITER_TEMPLATE.format(
-            rate_limiter_rows=rate_limiter_rows
-        )
+        content = RATE_LIMITER_TEMPLATE.format(rate_limiter_rows=rate_limiter_rows)
 
-        html = HTML_TEMPLATE.format(
-            title="WhiteBit MCP Rate Limiter",
-            content=content
-        )
+        html = HTML_TEMPLATE.format(title="WhiteBit MCP Rate Limiter", content=content)
 
         return web.Response(text=html, content_type="text/html")
 
@@ -588,9 +559,9 @@ class WebInterface:
             cache_rows += f"""
             <tr>
                 <td>{name}</td>
-                <td>{stats['valid_entries']}</td>
-                <td>{stats['invalid_entries']}</td>
-                <td>{stats['total_entries']}</td>
+                <td>{stats["valid_entries"]}</td>
+                <td>{stats["invalid_entries"]}</td>
+                <td>{stats["total_entries"]}</td>
                 <td>{persist}</td>
                 <td>
                     <form action="/clear-cache/{name}" method="post">
@@ -600,14 +571,9 @@ class WebInterface:
             </tr>
             """
 
-        content = CACHE_TEMPLATE.format(
-            cache_rows=cache_rows
-        )
+        content = CACHE_TEMPLATE.format(cache_rows=cache_rows)
 
-        html = HTML_TEMPLATE.format(
-            title="WhiteBit MCP Cache",
-            content=content
-        )
+        html = HTML_TEMPLATE.format(title="WhiteBit MCP Cache", content=content)
 
         return web.Response(text=html, content_type="text/html")
 

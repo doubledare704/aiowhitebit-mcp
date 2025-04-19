@@ -4,18 +4,16 @@ This module provides functionality for monitoring the WhiteBit MCP server's
 health and performance.
 """
 
-import asyncio
-import json
 import logging
 import time
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict
 
-from fastmcp import Context, FastMCP
+from fastmcp import FastMCP
 
+from aiowhitebit_mcp.cache import clear_cache, get_all_caches
+from aiowhitebit_mcp.circuit_breaker import get_all_circuit_breakers
 from aiowhitebit_mcp.metrics import get_metrics_collector
-from aiowhitebit_mcp.circuit_breaker import get_all_circuit_breakers, reset_circuit_breaker
 from aiowhitebit_mcp.rate_limiter import get_rate_limiter
-from aiowhitebit_mcp.cache import get_all_caches, clear_cache
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -34,10 +32,7 @@ class HealthCheck:
         self.last_check_time = 0
         self.check_interval = 60  # seconds
         self.is_healthy = True
-        self.health_status = {
-            "status": "healthy",
-            "checks": {}
-        }
+        self.health_status = {"status": "healthy", "checks": {}}
 
     def register_check(self, name: str, check_func):
         """Register a health check function.
@@ -62,29 +57,19 @@ class HealthCheck:
 
         self.last_check_time = current_time
         self.is_healthy = True
-        self.health_status = {
-            "status": "healthy",
-            "checks": {}
-        }
+        self.health_status = {"status": "healthy", "checks": {}}
 
         for name, check_func in self.checks.items():
             try:
                 result = await check_func()
-                self.health_status["checks"][name] = {
-                    "status": "healthy",
-                    "timestamp": current_time
-                }
+                self.health_status["checks"][name] = {"status": "healthy", "timestamp": current_time}
 
                 if isinstance(result, dict):
                     self.health_status["checks"][name].update(result)
             except Exception as e:
                 logger.error(f"Health check {name} failed: {e}")
                 self.is_healthy = False
-                self.health_status["checks"][name] = {
-                    "status": "unhealthy",
-                    "error": str(e),
-                    "timestamp": current_time
-                }
+                self.health_status["checks"][name] = {"status": "unhealthy", "error": str(e), "timestamp": current_time}
 
         if not self.is_healthy:
             self.health_status["status"] = "unhealthy"

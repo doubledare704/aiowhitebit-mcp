@@ -1,5 +1,4 @@
-"""Example script to demonstrate how to use the WebSocket tools.
-"""
+"""Example script to demonstrate how to use the WebSocket tools."""
 
 import asyncio
 import json

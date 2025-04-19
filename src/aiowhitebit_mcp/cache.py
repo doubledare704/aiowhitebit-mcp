@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CacheEntry:
     """Cache entry.
-    
+
     This class represents a cache entry, which contains the cached value and
     metadata about the entry.
-    
+
     Attributes:
         value: The cached value
         timestamp: The time when the entry was created
@@ -35,7 +35,7 @@ class CacheEntry:
 
     def is_valid(self) -> bool:
         """Check if the cache entry is still valid.
-        
+
         Returns:
             True if the entry is still valid, False otherwise
         """
@@ -44,14 +44,14 @@ class CacheEntry:
 
 class Cache:
     """Cache for the WhiteBit MCP server.
-    
+
     This class provides a cache for the WhiteBit MCP server to improve
     performance and reduce API calls.
     """
 
     def __init__(self, name: str, persist: bool = False, persist_dir: Optional[str] = None):
         """Initialize the cache.
-        
+
         Args:
             name: Name of the cache
             persist: Whether to persist the cache to disk
@@ -71,10 +71,10 @@ class Cache:
 
     def get(self, key: str) -> Optional[Any]:
         """Get a value from the cache.
-        
+
         Args:
             key: The key to get
-            
+
         Returns:
             The cached value, or None if the key is not in the cache or the
             entry is no longer valid
@@ -92,17 +92,13 @@ class Cache:
 
     def set(self, key: str, value: Any, ttl: float):
         """Set a value in the cache.
-        
+
         Args:
             key: The key to set
             value: The value to set
             ttl: The time-to-live for the entry in seconds
         """
-        self.entries[key] = CacheEntry(
-            value=value,
-            timestamp=time.time(),
-            ttl=ttl
-        )
+        self.entries[key] = CacheEntry(value=value, timestamp=time.time(), ttl=ttl)
 
         # Persist the cache to disk
         if self.persist:
@@ -110,7 +106,7 @@ class Cache:
 
     def delete(self, key: str):
         """Delete a value from the cache.
-        
+
         Args:
             key: The key to delete
         """
@@ -137,11 +133,7 @@ class Cache:
             for key, entry in self.entries.items():
                 # Only persist valid entries
                 if entry.is_valid():
-                    entries_dict[key] = {
-                        "value": entry.value,
-                        "timestamp": entry.timestamp,
-                        "ttl": entry.ttl
-                    }
+                    entries_dict[key] = {"value": entry.value, "timestamp": entry.timestamp, "ttl": entry.ttl}
 
             # Write the entries to disk
             cache_file = os.path.join(self.persist_dir, f"{self.name}.json")
@@ -155,15 +147,13 @@ class Cache:
         try:
             cache_file = os.path.join(self.persist_dir, f"{self.name}.json")
             if os.path.exists(cache_file):
-                with open(cache_file, "r") as f:
+                with open(cache_file) as f:
                     entries_dict = json.load(f)
 
                 # Create cache entries from the loaded data
                 for key, entry_dict in entries_dict.items():
                     entry = CacheEntry(
-                        value=entry_dict["value"],
-                        timestamp=entry_dict["timestamp"],
-                        ttl=entry_dict["ttl"]
+                        value=entry_dict["value"], timestamp=entry_dict["timestamp"], ttl=entry_dict["ttl"]
                     )
 
                     # Only add valid entries
@@ -174,7 +164,7 @@ class Cache:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get statistics about the cache.
-        
+
         Returns:
             A dictionary containing statistics about the cache
         """
@@ -193,7 +183,7 @@ class Cache:
             "invalid_entries": invalid_entries,
             "total_entries": valid_entries + invalid_entries,
             "persist": self.persist,
-            "persist_dir": self.persist_dir if self.persist else None
+            "persist_dir": self.persist_dir if self.persist else None,
         }
 
 
@@ -203,14 +193,14 @@ _caches: Dict[str, Cache] = {}
 
 def get_cache(name: str, persist: bool = False, persist_dir: Optional[str] = None) -> Cache:
     """Get a cache by name.
-    
+
     If the cache doesn't exist, it will be created.
-    
+
     Args:
         name: The name of the cache
         persist: Whether to persist the cache to disk
         persist_dir: Directory to persist the cache to
-        
+
     Returns:
         The cache
     """
@@ -222,7 +212,7 @@ def get_cache(name: str, persist: bool = False, persist_dir: Optional[str] = Non
 
 def cached(cache_name: str, ttl: float, key_fn: Optional[Callable] = None, persist: bool = False):
     """Decorator to cache the result of a function.
-    
+
     Args:
         cache_name: The name of the cache to use
         ttl: The time-to-live for the cache entry in seconds
@@ -230,7 +220,7 @@ def cached(cache_name: str, ttl: float, key_fn: Optional[Callable] = None, persi
             and returns a string to use as the cache key. If not provided, a key
             will be generated from the function name and arguments.
         persist: Whether to persist the cache to disk
-        
+
     Returns:
         A decorator that caches the result of a function
     """
@@ -270,7 +260,7 @@ def cached(cache_name: str, ttl: float, key_fn: Optional[Callable] = None, persi
 
 def get_all_caches() -> Dict[str, Cache]:
     """Get all caches.
-    
+
     Returns:
         A dictionary mapping cache names to caches
     """
@@ -279,10 +269,10 @@ def get_all_caches() -> Dict[str, Cache]:
 
 def clear_cache(name: str) -> bool:
     """Clear a cache.
-    
+
     Args:
         name: The name of the cache to clear
-        
+
     Returns:
         True if the cache was cleared, False if it doesn't exist
     """

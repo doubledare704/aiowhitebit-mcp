@@ -1,5 +1,4 @@
-"""Simple test script to verify the server works.
-"""
+"""Simple test script to verify the server works."""
 
 import asyncio
 

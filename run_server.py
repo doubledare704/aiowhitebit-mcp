@@ -14,16 +14,13 @@ import sys
 from aiowhitebit_mcp.server import create_server
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 async def run_server(args):
     """Run the WhiteBit MCP server.
-    
+
     Args:
         args: Command-line arguments
     """
@@ -34,24 +31,24 @@ async def run_server(args):
         api_secret=args.api_secret,
         web_interface=True,
         web_host=args.host,
-        web_port=args.port
+        web_port=args.port,
     )
-    
+
     # Set up signal handlers
     loop = asyncio.get_event_loop()
-    
+
     def signal_handler():
         logger.info("Received signal, shutting down...")
         loop.create_task(server.close())
-    
+
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, signal_handler)
-    
+
     # Run forever
     try:
-        logger.info(f"WhiteBit MCP server running")
+        logger.info("WhiteBit MCP server running")
         logger.info(f"Web interface available at http://{args.host}:{args.port}")
-        
+
         # Keep the server running
         while True:
             await asyncio.sleep(1)
@@ -61,43 +58,30 @@ async def run_server(args):
 
 def parse_args():
     """Parse command-line arguments.
-    
+
     Returns:
         Parsed arguments
     """
     parser = argparse.ArgumentParser(description="Run the WhiteBit MCP server")
-    
-    parser.add_argument(
-        "--name",
-        default="WhiteBit MCP",
-        help="Name of the MCP server"
-    )
-    
+
+    parser.add_argument("--name", default="WhiteBit MCP", help="Name of the MCP server")
+
     parser.add_argument(
         "--api-key",
         default=os.environ.get("WHITEBIT_API_KEY"),
-        help="WhiteBit API key (can also be set with WHITEBIT_API_KEY environment variable)"
+        help="WhiteBit API key (can also be set with WHITEBIT_API_KEY environment variable)",
     )
-    
+
     parser.add_argument(
         "--api-secret",
         default=os.environ.get("WHITEBIT_API_SECRET"),
-        help="WhiteBit API secret (can also be set with WHITEBIT_API_SECRET environment variable)"
+        help="WhiteBit API secret (can also be set with WHITEBIT_API_SECRET environment variable)",
     )
-    
-    parser.add_argument(
-        "--host",
-        default="localhost",
-        help="Host to bind the web interface to"
-    )
-    
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=8080,
-        help="Port to bind the web interface to"
-    )
-    
+
+    parser.add_argument("--host", default="localhost", help="Host to bind the web interface to")
+
+    parser.add_argument("--port", type=int, default=8080, help="Port to bind the web interface to")
+
     return parser.parse_args()
 
 

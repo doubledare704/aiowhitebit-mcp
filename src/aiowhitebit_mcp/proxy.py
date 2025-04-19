@@ -41,22 +41,24 @@ def optimized(ttl_seconds: int = 60, rate_limit_name: str = "public"):
     return decorator
 
 
-from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
 from aiowhitebit.clients.private import PrivateV4Client
+from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
 from aiowhitebit.models.public.v4 import (
-    ServerTime,
-    ServerStatus,
-    MarketInfo,
-    MarketActivity,
-    Orderbook,
-    Fee,
     AssetStatus,
+    Fee,
+    MarketActivity,
+    MarketInfo,
+    Orderbook,
     RecentTrades,
+    ServerStatus,
+    ServerTime,
 )
+
 
 # Custom implementations for missing models
 class Trade:
     """Trade data model."""
+
     def __init__(self, id: int, time: int, price: str, amount: str, type: str):
         self.id = id
         self.time = time
@@ -65,26 +67,25 @@ class Trade:
         self.type = type
 
     def dict(self):
-        return {
-            "id": self.id,
-            "time": self.time,
-            "price": self.price,
-            "amount": self.amount,
-            "type": self.type
-        }
+        return {"id": self.id, "time": self.time, "price": self.price, "amount": self.amount, "type": self.type}
+
 
 class OrderStatus:
     """Order status model."""
+
     def __init__(self, status: str):
         self.status = status
 
     def dict(self):
         return {"status": self.status}
 
+
 class OrderInfo:
     """Order information model."""
-    def __init__(self, order_id: int, market: str, type: str, side: str,
-                 status: str, price: str, amount: str, timestamp: int):
+
+    def __init__(
+        self, order_id: int, market: str, type: str, side: str, status: str, price: str, amount: str, timestamp: int
+    ):
         self.order_id = order_id
         self.market = market
         self.type = type
@@ -103,17 +104,18 @@ class OrderInfo:
             "status": self.status,
             "price": self.price,
             "amount": self.amount,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
+
 
 class DealsResponse:
     """Deals response model."""
+
     def __init__(self, deals: list):
         self.deals = deals
 
     def dict(self):
-        return {"deals": [deal.dict() if hasattr(deal, 'dict') else deal
-                         for deal in self.deals]}
+        return {"deals": [deal.dict() if hasattr(deal, "dict") else deal for deal in self.deals]}
 
 
 # If you need Kline functionality, you can create a custom class:
@@ -135,13 +137,11 @@ class Kline:
             "high": self.high,
             "low": self.low,
             "close": self.close,
-            "volume": self.volume
+            "volume": self.volume,
         }
 
 
-from aiowhitebit.models import (
-    TradingBalanceList, CreateOrderResponse, CancelOrderResponse
-)
+from aiowhitebit.models import CancelOrderResponse, CreateOrderResponse, TradingBalanceList
 
 
 # Mock classes for testing if needed
@@ -228,7 +228,7 @@ class MockTicker:
             "low": self.low,
             "volume": self.volume,
             "bid": self.bid,
-            "ask": self.ask
+            "ask": self.ask,
         }
 
 
@@ -242,11 +242,7 @@ class MockTradingBalanceItem:
 
     def dict(self):
         """Convert to dictionary representation."""
-        return {
-            "currency": self.currency,
-            "available": self.available,
-            "freeze": self.freeze
-        }
+        return {"currency": self.currency, "available": self.available, "freeze": self.freeze}
 
 
 class MockCreateOrderResponse:
@@ -266,7 +262,7 @@ class MockCreateOrderResponse:
             "market": self.market,
             "side": self.side,
             "amount": self.amount,
-            "price": self.price
+            "price": self.price,
         }
 
 
@@ -279,10 +275,7 @@ class MockCancelOrderResponse:
 
     def dict(self):
         """Convert to dictionary representation."""
-        return {
-            "orderId": self.order_id,
-            "market": self.market
-        }
+        return {"orderId": self.order_id, "market": self.market}
 
 
 class MockOrderInfo:
@@ -304,7 +297,7 @@ class MockOrderInfo:
             "side": self.side,
             "amount": self.amount,
             "price": self.price,
-            "status": self.status
+            "status": self.status,
         }
 
 
@@ -352,7 +345,7 @@ class PublicV4ClientProxy:
             logger.error(f"Error in get_server_time: {e}")
             logger.debug(traceback.format_exc())
             # Return a mock object for testing
-            return MockServerTime(int(1000000000))
+            return MockServerTime(1000000000)
 
     @optimized(ttl_seconds=60, rate_limit_name="public")  # Server status doesn't change often
     @circuit_breaker(name="public_v4_get_server_status", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
@@ -417,7 +410,7 @@ class PublicV4ClientProxy:
             logger.debug("Calling get_market_activity")
             result = await self._original_client.get_market_activity()
             logger.debug(f"get_market_activity result: {len(result)} activities")
-            return result
+            return [result]
         except Exception as e:
             logger.error(f"Error in get_market_activity: {e}")
             logger.debug(traceback.format_exc())
@@ -448,11 +441,13 @@ class PublicV4ClientProxy:
             try:
                 orderbook_data = result.model_dump()
                 logger.debug(
-                    f"get_orderbook result: {len(orderbook_data.get('asks', []))} asks, {len(orderbook_data.get('bids', []))} bids")
+                    f"get_orderbook result: {len(orderbook_data.get('asks', []))} asks, {len(orderbook_data.get('bids', []))} bids"
+                )
             except AttributeError:
                 orderbook_data = result.dict()
                 logger.debug(
-                    f"get_orderbook result (using dict): {len(orderbook_data.get('asks', []))} asks, {len(orderbook_data.get('bids', []))} bids")
+                    f"get_orderbook result (using dict): {len(orderbook_data.get('asks', []))} asks, {len(orderbook_data.get('bids', []))} bids"
+                )
             return result
         except Exception as e:
             logger.error(f"Error in get_orderbook for {market}: {e}")
@@ -531,7 +526,7 @@ class PublicV4ClientProxy:
             logger.debug("Calling get_asset_status_list")
             result = await self._original_client.get_asset_status_list()
             logger.debug(f"get_asset_status_list result: {len(result)} assets")
-            return result
+            return [result]
         except Exception as e:
             logger.error(f"Error in get_asset_status_list: {e}")
             logger.debug(traceback.format_exc())
@@ -558,7 +553,8 @@ class PublicV4ClientProxy:
         """
         try:
             logger.debug(
-                f"Calling get_kline for {market} with interval={interval}, start_time={start_time}, end_time={end_time}")
+                f"Calling get_kline for {market} with interval={interval}, start_time={start_time}, end_time={end_time}"
+            )
             result = await self._original_client.get_kline(market, interval, start_time, end_time)
             logger.debug(f"get_kline result: {len(result)} klines")
             return result
@@ -573,7 +569,7 @@ class PublicV4ClientProxy:
                     "close": "51000",
                     "high": "52000",
                     "low": "49000",
-                    "volume": "100"
+                    "volume": "100",
                 },
                 {
                     "timestamp": end_time,
@@ -581,8 +577,8 @@ class PublicV4ClientProxy:
                     "close": "52000",
                     "high": "53000",
                     "low": "50000",
-                    "volume": "200"
-                }
+                    "volume": "200",
+                },
             ]
 
     async def close(self) -> None:
@@ -737,7 +733,7 @@ class PublicV2ClientProxy:
             return {
                 "BTC": {"name": "Bitcoin", "unified_cryptoasset_id": 1, "can_withdraw": True, "can_deposit": True},
                 "ETH": {"name": "Ethereum", "unified_cryptoasset_id": 1027, "can_withdraw": True, "can_deposit": True},
-                "USDT": {"name": "Tether", "unified_cryptoasset_id": 825, "can_withdraw": True, "can_deposit": True}
+                "USDT": {"name": "Tether", "unified_cryptoasset_id": 825, "can_withdraw": True, "can_deposit": True},
             }
 
     async def close(self) -> None:

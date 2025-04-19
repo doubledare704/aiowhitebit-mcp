@@ -1,5 +1,4 @@
-"""Example script to demonstrate how to use the WhiteBit MCP client.
-"""
+"""Example script to demonstrate how to use the WhiteBit MCP client."""
 
 import asyncio
 import json

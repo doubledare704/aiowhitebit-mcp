@@ -1,9 +1,10 @@
-"""Simple test script to verify the MCP server implementation.
-"""
+"""Simple test script to verify the MCP server implementation."""
 
 import asyncio
 import json
+
 from fastmcp import Client
+
 from src.aiowhitebit_mcp.server import create_server
 
 

@@ -232,11 +232,7 @@ def cached(cache_name: str, ttl: float, key_fn: Optional[Callable] = None, persi
             cache = get_cache(cache_name, persist=persist)
 
             # Generate the cache key
-            if key_fn:
-                key = key_fn(*args, **kwargs)
-            else:
-                # Generate a key from the function name and arguments
-                key = f"{func.__name__}:{str(args)}:{str(kwargs)}"
+            key = key_fn(*args, **kwargs) if key_fn else f"{func.__name__}:{str(args)}:{str(kwargs)}"
 
             # Check if the result is in the cache
             result = cache.get(key)

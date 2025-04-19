@@ -1,12 +1,22 @@
-"""Proxy implementation for WhiteBit API clients.
-
-This module provides proxy classes that wrap the original WhiteBit API clients
-and route all calls through the MCP server.
-"""
+"""Proxy implementation for WhiteBit API clients."""
 
 import logging
 import traceback
 from typing import Callable
+
+from aiowhitebit.clients.private import PrivateV4Client
+from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
+from aiowhitebit.models import CancelOrderResponse, CreateOrderResponse, TradingBalanceList
+from aiowhitebit.models.public.v4 import (
+    AssetStatus,
+    Fee,
+    MarketActivity,
+    MarketInfo,
+    Orderbook,
+    RecentTrades,
+    ServerStatus,
+    ServerTime,
+)
 
 from aiowhitebit_mcp.cache import cached
 from aiowhitebit_mcp.circuit_breaker import circuit_breaker
@@ -41,25 +51,20 @@ def optimized(ttl_seconds: int = 60, rate_limit_name: str = "public"):
     return decorator
 
 
-from aiowhitebit.clients.private import PrivateV4Client
-from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
-from aiowhitebit.models.public.v4 import (
-    AssetStatus,
-    Fee,
-    MarketActivity,
-    MarketInfo,
-    Orderbook,
-    RecentTrades,
-    ServerStatus,
-    ServerTime,
-)
-
-
 # Custom implementations for missing models
 class Trade:
     """Trade data model."""
 
     def __init__(self, id: int, time: int, price: str, amount: str, type: str):
+        """Initialize a Trade instance.
+
+        Args:
+            id: Trade ID
+            time: Trade timestamp
+            price: Trade price
+            amount: Trade amount
+            type: Trade type
+        """
         self.id = id
         self.time = time
         self.price = price
@@ -67,6 +72,11 @@ class Trade:
         self.type = type
 
     def dict(self):
+        """Convert the trade object to a dictionary.
+
+        Returns:
+            dict: Dictionary representation of the trade
+        """
         return {"id": self.id, "time": self.time, "price": self.price, "amount": self.amount, "type": self.type}
 
 
@@ -74,9 +84,19 @@ class OrderStatus:
     """Order status model."""
 
     def __init__(self, status: str):
+        """Initialize OrderStatus.
+
+        Args:
+            status: The status of the order
+        """
         self.status = status
 
     def dict(self):
+        """Convert the order status to a dictionary.
+
+        Returns:
+            dict: Dictionary representation of the order status
+        """
         return {"status": self.status}
 
 
@@ -86,6 +106,18 @@ class OrderInfo:
     def __init__(
         self, order_id: int, market: str, type: str, side: str, status: str, price: str, amount: str, timestamp: int
     ):
+        """Initialize OrderInfo.
+
+        Args:
+            order_id: Order identifier
+            market: Market pair
+            type: Order type
+            side: Order side (buy/sell)
+            status: Order status
+            price: Order price
+            amount: Order amount
+            timestamp: Order timestamp
+        """
         self.order_id = order_id
         self.market = market
         self.type = type
@@ -96,6 +128,11 @@ class OrderInfo:
         self.timestamp = timestamp
 
     def dict(self):
+        """Convert the order info to a dictionary.
+
+        Returns:
+            dict: Dictionary representation of the order info
+        """
         return {
             "orderId": self.order_id,
             "market": self.market,
@@ -112,9 +149,19 @@ class DealsResponse:
     """Deals response model."""
 
     def __init__(self, deals: list):
+        """Initialize DealsResponse.
+
+        Args:
+            deals: List of deals
+        """
         self.deals = deals
 
     def dict(self):
+        """Convert the object to a dictionary.
+
+        Returns:
+            dict: Dictionary representation of the object
+        """
         return {"deals": [deal.dict() if hasattr(deal, "dict") else deal for deal in self.deals]}
 
 
@@ -123,6 +170,16 @@ class Kline:
     """Kline/candlestick data."""
 
     def __init__(self, timestamp: int, open: float, high: float, low: float, close: float, volume: float):
+        """Initialize Kline data.
+
+        Args:
+            timestamp: Timestamp of the candlestick
+            open: Opening price
+            high: Highest price
+            low: Lowest price
+            close: Closing price
+            volume: Trading volume
+        """
         self.timestamp = timestamp
         self.open = open
         self.high = high
@@ -131,6 +188,11 @@ class Kline:
         self.volume = volume
 
     def dict(self):
+        """Convert the Kline data to a dictionary.
+
+        Returns:
+            dict: Dictionary representation of the Kline data
+        """
         return {
             "timestamp": self.timestamp,
             "open": self.open,
@@ -141,14 +203,16 @@ class Kline:
         }
 
 
-from aiowhitebit.models import CancelOrderResponse, CreateOrderResponse, TradingBalanceList
-
-
 # Mock classes for testing if needed
 class MockServerTime:
     """Mock implementation of ServerTime for testing."""
 
     def __init__(self, time: int):
+        """Initialize MockServerTime.
+
+        Args:
+            time: Server time value
+        """
         self.time = time
 
     def model_dump(self):
@@ -164,6 +228,11 @@ class MockServerStatus:
     """Mock implementation of ServerStatus for testing."""
 
     def __init__(self, status: str):
+        """Initialize MockServerStatus.
+
+        Args:
+            status: Server status string
+        """
         self.status = status
 
     def model_dump(self):
@@ -179,6 +248,7 @@ class MockOrderbook:
     """Mock implementation of Orderbook for testing."""
 
     def __init__(self):
+        """Initialize MockOrderbook with empty asks and bids lists."""
         self.asks = []
         self.bids = []
 
@@ -195,6 +265,7 @@ class MockFee:
     """Mock implementation of Fee for testing."""
 
     def __init__(self):
+        """Initialize MockFee with default maker and taker fees."""
         self.maker = "0.001"
         self.taker = "0.001"
 
@@ -211,6 +282,11 @@ class MockTicker:
     """Mock implementation of Ticker for testing."""
 
     def __init__(self, market="BTC_USDT"):
+        """Initialize MockTicker.
+
+        Args:
+            market: Market pair (default: "BTC_USDT")
+        """
         self.market = market
         self.last = "50000"
         self.high = "51000"
@@ -236,6 +312,13 @@ class MockTradingBalanceItem:
     """Mock implementation of TradingBalanceItem for testing."""
 
     def __init__(self, currency="BTC", available="1.0", freeze="0.5"):
+        """Initialize MockTradingBalanceItem.
+
+        Args:
+            currency: Currency code (default: "BTC")
+            available: Available balance (default: "1.0")
+            freeze: Frozen balance (default: "0.5")
+        """
         self.currency = currency
         self.available = available
         self.freeze = freeze
@@ -249,6 +332,15 @@ class MockCreateOrderResponse:
     """Mock implementation of CreateOrderResponse for testing."""
 
     def __init__(self, order_id=12345, market="BTC_USDT", side="buy", amount="1.0", price="50000"):
+        """Initialize MockCreateOrderResponse.
+
+        Args:
+            order_id: Order ID (default: 12345)
+            market: Market pair (default: "BTC_USDT")
+            side: Order side (default: "buy")
+            amount: Order amount (default: "1.0")
+            price: Order price (default: "50000")
+        """
         self.order_id = order_id
         self.market = market
         self.side = side
@@ -270,6 +362,12 @@ class MockCancelOrderResponse:
     """Mock implementation of CancelOrderResponse for testing."""
 
     def __init__(self, order_id=12345, market="BTC_USDT"):
+        """Initialize MockCancelOrderResponse.
+
+        Args:
+            order_id: Order ID (default: 12345)
+            market: Market pair (default: "BTC_USDT")
+        """
         self.order_id = order_id
         self.market = market
 
@@ -282,6 +380,16 @@ class MockOrderInfo:
     """Mock implementation of OrderInfo for testing."""
 
     def __init__(self, order_id=12345, market="BTC_USDT", side="buy", amount="1.0", price="50000", status="active"):
+        """Initialize MockOrderInfo.
+
+        Args:
+            order_id: Order ID (default: 12345)
+            market: Market pair (default: "BTC_USDT")
+            side: Order side (default: "buy")
+            amount: Order amount (default: "1.0")
+            price: Order price (default: "50000")
+            status: Order status (default: "active")
+        """
         self.order_id = order_id
         self.market = market
         self.side = side
@@ -440,14 +548,14 @@ class PublicV4ClientProxy:
             # Handle both model_dump and dict methods
             try:
                 orderbook_data = result.model_dump()
-                logger.debug(
-                    f"get_orderbook result: {len(orderbook_data.get('asks', []))} asks, {len(orderbook_data.get('bids', []))} bids"
-                )
+                asks_count = len(orderbook_data.get("asks", []))
+                bids_count = len(orderbook_data.get("bids", []))
+                logger.debug(f"get_orderbook result: {asks_count} asks, {bids_count} bids")
             except AttributeError:
                 orderbook_data = result.dict()
-                logger.debug(
-                    f"get_orderbook result (using dict): {len(orderbook_data.get('asks', []))} asks, {len(orderbook_data.get('bids', []))} bids"
-                )
+                asks_count = len(orderbook_data.get("asks", []))
+                bids_count = len(orderbook_data.get("bids", []))
+                logger.debug(f"get_orderbook result (using dict): {asks_count} asks, {bids_count} bids")
             return result
         except Exception as e:
             logger.error(f"Error in get_orderbook for {market}: {e}")

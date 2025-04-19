@@ -1,3 +1,9 @@
+"""Tests for the WhiteBit MCP server implementation.
+
+This module contains integration tests that verify the functionality
+of the MCP server implementation for the WhiteBit exchange API.
+"""
+
 import json
 import logging
 

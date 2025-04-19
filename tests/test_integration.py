@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 async def test_get_ticker():
+    """Test the get_ticker endpoint returns valid ticker data."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -44,6 +45,7 @@ async def test_get_ticker():
 
 
 async def test_get_tickers():
+    """Test the get_tickers endpoint returns data for multiple markets."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_tickers...")
@@ -70,6 +72,7 @@ async def test_get_tickers():
 
 # Test cases for public v2 API
 async def test_get_symbols():
+    """Test the get_symbols endpoint returns a list of available trading pairs."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_symbols...")
@@ -91,6 +94,7 @@ async def test_get_symbols():
 
 
 async def test_get_assets():
+    """Test the get_assets endpoint returns information about available assets."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_assets...")
@@ -117,6 +121,7 @@ async def test_get_assets():
 
 # Test cases for public v4 API
 async def test_server_time():
+    """Test the server time endpoint returns the current server time."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_server_time...")
@@ -141,6 +146,7 @@ async def test_server_time():
 
 
 async def test_server_status():
+    """Test the server status endpoint returns the current server status."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_server_status...")
@@ -162,6 +168,7 @@ async def test_server_status():
 
 
 async def test_market_info():
+    """Test the market info endpoint returns information about available markets."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_market_info...")
@@ -190,6 +197,7 @@ async def test_market_info():
 
 
 async def test_market_activity():
+    """Test the market activity endpoint returns current market activities."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_market_activity...")
@@ -219,6 +227,7 @@ async def test_market_activity():
 
 
 async def test_orderbook():
+    """Test the orderbook endpoint returns current order book data."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_orderbook...")
@@ -244,6 +253,7 @@ async def test_orderbook():
 
 
 async def test_recent_trades():
+    """Test the recent trades endpoint returns latest trades."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_recent_trades...")
@@ -268,6 +278,7 @@ async def test_recent_trades():
 
 
 async def test_fee():
+    """Test the fee endpoint returns trading fee information."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_fee...")
@@ -288,6 +299,7 @@ async def test_fee():
 
 
 async def test_asset_status_list():
+    """Test the asset status list endpoint returns status of all assets."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_asset_status_list...")

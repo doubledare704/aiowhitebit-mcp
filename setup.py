@@ -1,3 +1,10 @@
+"""Setup script for aiowhitebit-mcp package.
+
+This module contains the setup configuration for installing the aiowhitebit-mcp
+package, which provides an MCP server and client for the WhiteBit cryptocurrency
+exchange API.
+"""
+
 from setuptools import find_packages, setup
 
 # Define development requirements

@@ -295,7 +295,8 @@ class WhiteBitMCP:
                 end_time: End time in seconds
             """
             logger.debug(
-                f"Tool call: get_kline for {market.market} with interval={interval}, start_time={start_time}, end_time={end_time}"
+                f"Tool call: get_kline for {market.market} with "
+                f"interval={interval}, start_time={start_time}, end_time={end_time}"
             )
             result = await self.public_v4.get_kline(market.market, interval, start_time, end_time)
             logger.debug(f"get_kline result: {len(result)} klines")
@@ -455,7 +456,7 @@ class WhiteBitMCP:
                     "server_time": result.model_dump() if hasattr(result, "model_dump") else result.dict(),
                 }
             except Exception as e:
-                raise Exception(f"Public v4 API health check failed: {e}")
+                raise Exception(f"Public v4 API health check failed: {e}") from e
 
         register_health_check("public_v4_api", check_public_v4_api)
 

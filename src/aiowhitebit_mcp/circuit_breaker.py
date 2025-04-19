@@ -160,13 +160,12 @@ def circuit_breaker(name: str, failure_threshold: int = 5, recovery_timeout: flo
             try:
                 # Set a timeout for the request
                 result = await asyncio.wait_for(func(*args, **kwargs), timeout=timeout)
-
                 circuit.record_success()
                 return result
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError as err:
                 logger.error(f"Request to {name} timed out after {timeout} seconds")
                 circuit.record_failure()
-                raise Exception(f"Request to {name} timed out")
+                raise Exception(f"Request to {name} timed out") from err
             except Exception as e:
                 logger.error(f"Request to {name} failed: {e}")
                 circuit.record_failure()

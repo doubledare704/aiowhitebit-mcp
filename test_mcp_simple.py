@@ -9,7 +9,7 @@ from src.aiowhitebit_mcp.server import create_server
 
 
 async def test_server_time():
-    """Test getting server time"""
+    """Test getting server time."""
     # Create the server
     server = create_server()
 
@@ -59,7 +59,7 @@ async def test_server_time():
 
 
 async def test_market_info():
-    """Test getting market info"""
+    """Test getting market info."""
     # Create the server
     server = create_server()
 
@@ -111,7 +111,7 @@ async def test_market_info():
 
 
 async def main():
-    """Run all tests"""
+    """Run all tests."""
     await test_server_time()
     await test_market_info()
 

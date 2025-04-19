@@ -1,5 +1,4 @@
-"""Simple test script to verify the server works.
-"""
+"""Simple test script to verify the server works."""
 
 import asyncio
 
@@ -9,7 +8,7 @@ from aiowhitebit_mcp.server import create_server
 
 
 async def test():
-    """Test the server by making a simple request"""
+    """Test the server by making a simple request."""
     # Create the server
     server = create_server()
 

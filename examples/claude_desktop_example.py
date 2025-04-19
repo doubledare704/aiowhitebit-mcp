@@ -1,5 +1,4 @@
-"""Example script to run the WhiteBit MCP server for Claude Desktop.
-"""
+"""Example script to run the WhiteBit MCP server for Claude Desktop."""
 
 import os
 
@@ -9,7 +8,7 @@ from aiowhitebit_mcp.server import create_server
 server = create_server(
     name="WhiteBit Crypto Exchange",
     api_key=os.environ.get("WHITEBIT_API_KEY"),
-    api_secret=os.environ.get("WHITEBIT_API_SECRET")
+    api_secret=os.environ.get("WHITEBIT_API_SECRET"),
 )
 
 # Run the server with stdio transport (for Claude Desktop)

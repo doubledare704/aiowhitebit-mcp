@@ -1,2 +1,1 @@
-"""Tests for aiowhitebit-mcp.
-"""
+"""Tests for aiowhitebit-mcp."""

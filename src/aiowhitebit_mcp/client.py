@@ -9,7 +9,7 @@ from fastmcp import Client
 class WhiteBitMCPClient:
     """Client for interacting with the WhiteBit MCP server."""
 
-    def __init__(self, server_url: str = None):
+    def __init__(self, server_url: Optional[str] = None):
         """Initialize the WhiteBit MCP client.
 
         Args:

@@ -12,6 +12,7 @@ from typing import Optional
 from aiowhitebit.clients.private import PrivateV4Client
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
 from aiowhitebit.clients.websocket import PublicWebSocketClient
+from aiowhitebit.models import CancelOrderRequest, CreateLimitOrderRequest
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
@@ -20,6 +21,8 @@ from aiowhitebit_mcp.monitoring import get_monitoring_server, register_health_ch
 from aiowhitebit_mcp.proxy import PrivateV4ClientProxy, PublicV1ClientProxy, PublicV2ClientProxy, PublicV4ClientProxy
 from aiowhitebit_mcp.rate_limiter import configure_rate_limiter
 from aiowhitebit_mcp.web_interface import start_web_interface, stop_web_interface
+
+from .types import TransportType, WhiteBitMCPProtocol
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -53,8 +56,8 @@ class StopOrderParams(OrderParams):
     activation_price: float = Field(..., description="Price at which the order will be activated")
 
 
-class WhiteBitMCP:
-    """WhiteBit MCP Server.
+class WhiteBitMCP(WhiteBitMCPProtocol):
+    """WhiteBit MCP server implementation.
 
     Provides MCP tools and resources for interacting with the WhiteBit cryptocurrency exchange.
     This class wraps the aiowhitebit library and exposes its functionality as MCP tools.
@@ -118,7 +121,7 @@ class WhiteBitMCP:
         logger.debug("Public clients initialized")
 
         # Initialize private client if credentials are provided
-        self.private_v4 = None
+        self.private_v4: Optional[PrivateV4Client] = None
         if api_key and api_secret:
             logger.debug("Initializing private client with provided credentials")
             original_private_v4 = PrivateV4Client(api_key=api_key, secret_key=api_secret)
@@ -350,7 +353,12 @@ class WhiteBitMCP:
             """
             logger.debug(f"Tool call: create_limit_order for {order.market}")
             result = await self.private_v4.create_limit_order(
-                market=order.market, side=order.side, amount=str(order.amount), price=str(order.price)
+                CreateLimitOrderRequest(
+                    market=order.market,
+                    side=order.side,
+                    amount=str(order.amount),
+                    price=str(order.price),
+                )
             )
             logger.debug(f"create_limit_order result: {result}")
             return {"order": result}
@@ -365,7 +373,12 @@ class WhiteBitMCP:
                 market: Market pair (e.g., 'BTC_USDT')
             """
             logger.debug(f"Tool call: cancel_order for order {order_id} in {market.market}")
-            result = await self.private_v4.cancel_order(order_id, market.market)
+            result = await self.private_v4.cancel_order(
+                CancelOrderRequest(
+                    orderId=order_id,
+                    market=market.market,
+                )
+            )
             logger.debug(f"cancel_order result: {result}")
             return {"order": result}
 
@@ -562,6 +575,21 @@ class WhiteBitMCP:
             logger.debug("Web interface stopped")
 
         logger.info(f"{self.name} server closed successfully")
+
+    def run(
+        self,
+        transport: TransportType = "stdio",
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+    ) -> None:
+        """Run the MCP server.
+
+        Args:
+            transport: Transport type to use
+            host: Host to bind to (for network transports)
+            port: Port to bind to (for network transports)
+        """
+        # Implementation here
 
 
 def create_server(

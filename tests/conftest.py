@@ -1,5 +1,6 @@
 import pytest_asyncio
 from fastmcp import Client
+
 from aiowhitebit_mcp.server import create_server
 
 

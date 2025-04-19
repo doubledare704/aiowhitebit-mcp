@@ -6,7 +6,7 @@ health and performance.
 
 import logging
 import time
-from typing import Any, Dict
+from typing import Any
 
 from fastmcp import FastMCP
 
@@ -43,7 +43,7 @@ class HealthCheck:
         """
         self.checks[name] = check_func
 
-    async def run_checks(self) -> Dict[str, Any]:
+    async def run_checks(self) -> dict[str, Any]:
         """Run all registered health checks.
 
         Returns:
@@ -102,23 +102,23 @@ class MonitoringServer:
         """Register monitoring tools."""
 
         @self.mcp.tool()
-        async def health() -> Dict:
+        async def health() -> dict:
             """Get the health status of the WhiteBit MCP server."""
             return await self.health_check.run_checks()
 
         @self.mcp.tool()
-        async def metrics() -> Dict:
+        async def metrics() -> dict:
             """Get metrics for the WhiteBit MCP server."""
             return self.metrics_collector.get_summary()
 
         @self.mcp.tool()
-        async def reset_metrics() -> Dict:
+        async def reset_metrics() -> dict:
             """Reset all metrics."""
             self.metrics_collector.reset()
             return {"status": "ok", "message": "Metrics reset successfully"}
 
         @self.mcp.tool()
-        async def circuit_breakers() -> Dict:
+        async def circuit_breakers() -> dict:
             """Get the status of all circuit breakers."""
             result = {}
             for name, circuit in get_all_circuit_breakers().items():
@@ -126,7 +126,7 @@ class MonitoringServer:
             return result
 
         @self.mcp.tool()
-        async def reset_circuit_breaker(name: str) -> Dict:
+        async def reset_circuit_breaker(name: str) -> dict:
             """Reset a circuit breaker.
 
             Args:
@@ -139,13 +139,13 @@ class MonitoringServer:
                 return {"status": "error", "message": f"Circuit breaker {name} not found"}
 
         @self.mcp.tool()
-        async def rate_limiter_status() -> Dict:
+        async def rate_limiter_status() -> dict:
             """Get the status of the rate limiter."""
             rate_limiter = get_rate_limiter()
             return rate_limiter.get_status()
 
         @self.mcp.tool()
-        async def cache_status() -> Dict:
+        async def cache_status() -> dict:
             """Get the status of all caches."""
             caches = get_all_caches()
             result = {}
@@ -154,7 +154,7 @@ class MonitoringServer:
             return result
 
         @self.mcp.tool()
-        async def clear_cache_by_name(name: str) -> Dict:
+        async def clear_cache_by_name(name: str) -> dict:
             """Clear a cache by name.
 
             Args:

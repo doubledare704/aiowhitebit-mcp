@@ -8,7 +8,7 @@ import asyncio
 import logging
 import sys
 import time
-from typing import Any, Dict
+from typing import Any
 
 from aiowhitebit_mcp.cache import cached, clear_cache, get_all_caches, get_cache
 
@@ -30,7 +30,7 @@ class SlowService:
         self.call_count = 0
 
     @cached(cache_name="slow_service", ttl=10)
-    async def get_data(self, key: str) -> Dict[str, Any]:
+    async def get_data(self, key: str) -> dict[str, Any]:
         """Get data from the slow service.
 
         Args:

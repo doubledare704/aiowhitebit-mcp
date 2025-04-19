@@ -7,7 +7,7 @@ from .server import create_server
 
 
 def main():
-    """Main entry point for the CLI"""
+    """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(description="WhiteBit MCP Server")
 
     parser.add_argument("--name", type=str, default="WhiteBit MCP", help="Name of the MCP server")

@@ -13,7 +13,7 @@ os.environ["WHITEBIT_MCP_URL"] = "http://0.0.0.0:8000"  # For SSE transport
 
 
 async def main():
-    """Main function to demonstrate client usage"""
+    """Main function to demonstrate client usage."""
     async with WhiteBitMCPClient() as client:
         # Get server time
         server_time = await client.get_server_time()

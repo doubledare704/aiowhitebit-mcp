@@ -9,7 +9,7 @@ import logging
 import time
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict
+from typing import Any
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class CircuitBreaker:
         # Half-open state
         return True
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get the current state of the circuit breaker.
 
         Returns:
@@ -106,7 +106,7 @@ class CircuitBreaker:
 
 
 # Global circuit breakers
-_circuit_breakers: Dict[str, CircuitBreaker] = {}
+_circuit_breakers: dict[str, CircuitBreaker] = {}
 
 
 def get_circuit_breaker(
@@ -177,7 +177,7 @@ def circuit_breaker(name: str, failure_threshold: int = 5, recovery_timeout: flo
     return decorator
 
 
-def get_all_circuit_breakers() -> Dict[str, CircuitBreaker]:
+def get_all_circuit_breakers() -> dict[str, CircuitBreaker]:
     """Get all circuit breakers.
 
     Returns:

@@ -11,7 +11,7 @@ os.environ["WHITEBIT_MCP_URL"] = "http://localhost:8000/mcp"  # For SSE transpor
 
 
 async def main():
-    """Main function to demonstrate private API usage"""
+    """Main function to demonstrate private API usage."""
     # Make sure you have set your API credentials in the server
     async with WhiteBitMCPClient() as client:
         # Get trading balance

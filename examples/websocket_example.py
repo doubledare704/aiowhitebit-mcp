@@ -11,7 +11,7 @@ os.environ["WHITEBIT_MCP_URL"] = "http://localhost:8000/mcp"  # For SSE transpor
 
 
 async def main():
-    """Main function to demonstrate WebSocket client usage"""
+    """Main function to demonstrate WebSocket client usage."""
     async with WhiteBitMCPClient() as client:
         # Get last price for BTC_USDT using WebSocket
         last_price = await client.get_last_price("BTC_USDT")

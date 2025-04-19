@@ -6,7 +6,7 @@ and route all calls through the MCP server.
 
 import logging
 import traceback
-from typing import Callable, List
+from typing import Callable
 
 from aiowhitebit_mcp.cache import cached
 from aiowhitebit_mcp.circuit_breaker import circuit_breaker
@@ -376,7 +376,7 @@ class PublicV4ClientProxy:
             return MockServerStatus("active")
 
     @cached(cache_name="market_info", ttl=300, persist=True)  # Market info changes infrequently
-    async def get_market_info(self) -> List[MarketInfo]:
+    async def get_market_info(self) -> list[MarketInfo]:
         """Get information about all available markets.
 
         Returns:
@@ -397,7 +397,7 @@ class PublicV4ClientProxy:
             return [{"stock": "BTC", "money": "USDT", "name": "BTC_USDT"}]
 
     @optimized(ttl_seconds=30)  # Market activity changes frequently
-    async def get_market_activity(self) -> List[MarketActivity]:
+    async def get_market_activity(self) -> list[MarketActivity]:
         """Get activity information for all markets (last price, volume, etc.).
 
         Returns:
@@ -458,7 +458,7 @@ class PublicV4ClientProxy:
     @optimized(ttl_seconds=10, rate_limit_name="get_recent_trades")  # Recent trades change frequently
     @circuit_breaker(name="public_v4_get_recent_trades", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
     @rate_limited("get_recent_trades")
-    async def get_recent_trades(self, market: str, limit: int = 100) -> List[RecentTrades]:
+    async def get_recent_trades(self, market: str, limit: int = 100) -> list[RecentTrades]:
         """Get recent trades for a specific market.
 
         Args:
@@ -513,7 +513,7 @@ class PublicV4ClientProxy:
             return MockFee()
 
     @cached(cache_name="asset_status", ttl=1800, persist=True)  # Asset status changes infrequently
-    async def get_asset_status_list(self) -> List[AssetStatus]:
+    async def get_asset_status_list(self) -> list[AssetStatus]:
         """Get status of all assets.
 
         Returns:
@@ -536,7 +536,7 @@ class PublicV4ClientProxy:
     @optimized(ttl_seconds=60, rate_limit_name="public")  # Kline data changes frequently but not too much
     @circuit_breaker(name="public_v4_get_kline", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
     @rate_limited("public")
-    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> List[Kline]:
+    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> list[Kline]:
         """Get kline (candlestick) data for a specific market.
 
         Args:
@@ -874,7 +874,7 @@ class PrivateV4ClientProxy:
 
     @optimized(ttl_seconds=60, rate_limit_name="private")  # Active orders don't change that frequently
     @circuit_breaker(name="private_v4_get_active_orders", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
-    async def get_active_orders(self, market: str) -> List[OrderInfo]:
+    async def get_active_orders(self, market: str) -> list[OrderInfo]:
         """Get active orders for a market.
 
         Args:

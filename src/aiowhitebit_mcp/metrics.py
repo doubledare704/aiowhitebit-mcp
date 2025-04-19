@@ -8,7 +8,7 @@ import logging
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Optional
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -54,8 +54,8 @@ class EndpointMetrics:
     total_duration: float = 0.0
     min_duration: Optional[float] = None
     max_duration: Optional[float] = None
-    durations: List[float] = field(default_factory=list)
-    errors: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    durations: list[float] = field(default_factory=list)
+    errors: dict[str, int] = field(default_factory=lambda: defaultdict(int))
 
     def add_request(self, metrics: RequestMetrics) -> None:
         """Add a request to the endpoint metrics.
@@ -133,8 +133,8 @@ class MetricsCollector:
 
     def __init__(self):
         """Initialize the metrics collector."""
-        self.endpoints: Dict[str, EndpointMetrics] = {}
-        self.active_requests: Dict[str, RequestMetrics] = {}
+        self.endpoints: dict[str, EndpointMetrics] = {}
+        self.active_requests: dict[str, RequestMetrics] = {}
         self.request_id_counter = 0
 
     def start_request(self, endpoint: str) -> str:
@@ -187,7 +187,7 @@ class MetricsCollector:
         """
         return self.endpoints.get(endpoint)
 
-    def get_all_endpoint_metrics(self) -> Dict[str, EndpointMetrics]:
+    def get_all_endpoint_metrics(self) -> dict[str, EndpointMetrics]:
         """Get metrics for all endpoints.
 
         Returns:
@@ -195,7 +195,7 @@ class MetricsCollector:
         """
         return self.endpoints.copy()
 
-    def get_summary(self) -> Dict[str, Dict[str, float]]:
+    def get_summary(self) -> dict[str, dict[str, float]]:
         """Get a summary of metrics for all endpoints.
 
         Returns:

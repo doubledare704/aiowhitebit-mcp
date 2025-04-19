@@ -7,7 +7,7 @@ functionality as MCP tools.
 import asyncio
 import logging
 import time
-from typing import Dict, Optional
+from typing import Optional
 
 from aiowhitebit.clients.private import PrivateV4Client
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
@@ -165,8 +165,8 @@ class WhiteBitMCP:
         logger.debug("Registering public v1 API tools")
 
         @self.mcp.tool()
-        async def get_ticker(market: MarketPair) -> Dict:
-            """Get ticker information for a specific market
+        async def get_ticker(market: MarketPair) -> dict:
+            """Get ticker information for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -177,8 +177,8 @@ class WhiteBitMCP:
             return {"ticker": result.dict() if hasattr(result, "dict") else result}
 
         @self.mcp.tool()
-        async def get_tickers() -> Dict:
-            """Get ticker information for all markets"""
+        async def get_tickers() -> dict:
+            """Get ticker information for all markets."""
             logger.debug("Tool call: get_tickers")
             result = await self.public_v1.get_tickers()
             logger.debug(f"get_tickers result: {len(result)} tickers")
@@ -196,16 +196,16 @@ class WhiteBitMCP:
         logger.debug("Registering public v2 API tools")
 
         @self.mcp.tool()
-        async def get_symbols() -> Dict:
-            """Get all available symbols"""
+        async def get_symbols() -> dict:
+            """Get all available symbols."""
             logger.debug("Tool call: get_symbols")
             result = await self.public_v2.get_symbols()
             logger.debug(f"get_symbols result: {len(result)} symbols")
             return {"symbols": result}
 
         @self.mcp.tool()
-        async def get_assets() -> Dict:
-            """Get all available assets"""
+        async def get_assets() -> dict:
+            """Get all available assets."""
             logger.debug("Tool call: get_assets")
             result = await self.public_v2.get_assets()
             logger.debug(f"get_assets result: {len(result)} assets")
@@ -224,33 +224,33 @@ class WhiteBitMCP:
 
         @track_request("get_server_time")
         @self.mcp.tool()
-        async def get_server_time() -> Dict:
-            """Get current server time"""
+        async def get_server_time() -> dict:
+            """Get current server time."""
             result = await self.public_v4.get_server_time()
             return {"time": result.model_dump() if hasattr(result, "model_dump") else result.model_dump()}
 
         @self.mcp.tool()
-        async def get_server_status() -> Dict:
-            """Get current server status"""
+        async def get_server_status() -> dict:
+            """Get current server status."""
             result = await self.public_v4.get_server_status()
             return {"status": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
 
         @track_request("get_market_info")
         @self.mcp.tool()
-        async def get_market_info() -> Dict:
-            """Get information about all available markets"""
+        async def get_market_info() -> dict:
+            """Get information about all available markets."""
             result = await self.public_v4.get_market_info()
             return {"markets": list(result)}  # Convert MarketInfo to a regular list and wrap in dict
 
         @self.mcp.tool()
-        async def get_market_activity() -> Dict:
-            """Get activity information for all markets (last price, volume, etc.)"""
+        async def get_market_activity() -> dict:
+            """Get activity information for all markets (last price, volume, etc.)."""
             result = await self.public_v4.get_market_activity()
             return {"activities": list(result)}  # Convert MarketActivity to a regular list and wrap in dict
 
         @self.mcp.tool()
-        async def get_orderbook(market: MarketPair) -> Dict:
-            """Get orderbook for a specific market
+        async def get_orderbook(market: MarketPair) -> dict:
+            """Get orderbook for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -259,8 +259,8 @@ class WhiteBitMCP:
             return {"orderbook": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
 
         @self.mcp.tool()
-        async def get_recent_trades(market: MarketPair) -> Dict:
-            """Get recent trades for a specific market
+        async def get_recent_trades(market: MarketPair) -> dict:
+            """Get recent trades for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -269,8 +269,8 @@ class WhiteBitMCP:
             return {"trades": list(result)}  # Convert RecentTrades to a regular list and wrap in dict
 
         @self.mcp.tool()
-        async def get_fee(market: MarketPair) -> Dict:
-            """Get trading fee for a specific market
+        async def get_fee(market: MarketPair) -> dict:
+            """Get trading fee for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -279,14 +279,14 @@ class WhiteBitMCP:
             return {"fee": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
 
         @self.mcp.tool()
-        async def get_asset_status_list() -> Dict:
-            """Get status of all assets"""
+        async def get_asset_status_list() -> dict:
+            """Get status of all assets."""
             result = await self.public_v4.get_asset_status_list()
             return {"assets": list(result)}  # Convert AssetStatus to a regular list and wrap in dict
 
         @self.mcp.tool()
-        async def get_kline(market: MarketPair, interval: str, start_time: int, end_time: int) -> Dict:
-            """Get kline (candlestick) data for a specific market
+        async def get_kline(market: MarketPair, interval: str, start_time: int, end_time: int) -> dict:
+            """Get kline (candlestick) data for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -332,8 +332,8 @@ class WhiteBitMCP:
 
         @track_request("get_trading_balance")
         @self.mcp.tool()
-        async def get_trading_balance() -> Dict:
-            """Get trading balance for all assets"""
+        async def get_trading_balance() -> dict:
+            """Get trading balance for all assets."""
             logger.debug("Tool call: get_trading_balance")
             result = await self.private_v4.get_trading_balance()
             logger.debug("get_trading_balance result received")
@@ -341,8 +341,8 @@ class WhiteBitMCP:
 
         @track_request("create_limit_order")
         @self.mcp.tool()
-        async def create_limit_order(order: OrderParams) -> Dict:
-            """Create a limit order
+        async def create_limit_order(order: OrderParams) -> dict:
+            """Create a limit order.
 
             Args:
                 order: Order parameters
@@ -356,8 +356,8 @@ class WhiteBitMCP:
 
         @track_request("cancel_order")
         @self.mcp.tool()
-        async def cancel_order(order_id: int, market: MarketPair) -> Dict:
-            """Cancel an order
+        async def cancel_order(order_id: int, market: MarketPair) -> dict:
+            """Cancel an order.
 
             Args:
                 order_id: Order ID to cancel
@@ -370,8 +370,8 @@ class WhiteBitMCP:
 
         @track_request("get_order_status")
         @self.mcp.tool()
-        async def get_order_status(order_id: int, market: MarketPair) -> Dict:
-            """Get order status
+        async def get_order_status(order_id: int, market: MarketPair) -> dict:
+            """Get order status.
 
             Args:
                 order_id: Order ID to check
@@ -384,8 +384,8 @@ class WhiteBitMCP:
 
         @track_request("get_active_orders")
         @self.mcp.tool()
-        async def get_active_orders(market: MarketPair) -> Dict:
-            """Get active orders for a market
+        async def get_active_orders(market: MarketPair) -> dict:
+            """Get active orders for a market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -407,8 +407,8 @@ class WhiteBitMCP:
         logger.debug("Registering WebSocket tools")
 
         @self.mcp.tool()
-        async def connect_websocket() -> Dict:
-            """Connect to the WebSocket API"""
+        async def connect_websocket() -> dict:
+            """Connect to the WebSocket API."""
             if not self.ws_client:
                 logger.debug("Initializing WebSocket client")
                 self.ws_client = PublicWebSocketClient()
@@ -421,8 +421,8 @@ class WhiteBitMCP:
             return {"status": "connected"}
 
         @self.mcp.tool()
-        async def disconnect_websocket() -> Dict:
-            """Disconnect from the WebSocket API"""
+        async def disconnect_websocket() -> dict:
+            """Disconnect from the WebSocket API."""
             if not self.ws_client:
                 logger.warning("WebSocket client not initialized")
                 return {"status": "not_connected"}
@@ -469,23 +469,23 @@ class WhiteBitMCP:
 
         # Register monitoring tools
         @self.mcp.tool()
-        async def health() -> Dict:
+        async def health() -> dict:
             """Get the health status of the WhiteBit MCP server."""
             return await monitoring_server.health_check.run_checks()
 
         @self.mcp.tool()
-        async def metrics() -> Dict:
+        async def metrics() -> dict:
             """Get metrics for the WhiteBit MCP server."""
             return self.metrics_collector.get_summary()
 
         @self.mcp.tool()
-        async def reset_metrics() -> Dict:
+        async def reset_metrics() -> dict:
             """Reset all metrics."""
             self.metrics_collector.reset()
             return {"status": "ok", "message": "Metrics reset successfully"}
 
         @self.mcp.tool()
-        async def circuit_breakers() -> Dict:
+        async def circuit_breakers() -> dict:
             """Get the status of all circuit breakers."""
             from aiowhitebit_mcp.circuit_breaker import get_all_circuit_breakers
 
@@ -495,7 +495,7 @@ class WhiteBitMCP:
             return result
 
         @self.mcp.tool()
-        async def reset_circuit_breaker(name: str) -> Dict:
+        async def reset_circuit_breaker(name: str) -> dict:
             """Reset a circuit breaker.
 
             Args:
@@ -512,17 +512,17 @@ class WhiteBitMCP:
         logger.debug("Monitoring setup complete")
 
     def _register_resources(self):
-        """Register resources"""
+        """Register resources."""
 
         @self.mcp.resource("whitebit://markets")
-        async def get_markets_resource() -> Dict:
-            """Get information about all available markets"""
+        async def get_markets_resource() -> dict:
+            """Get information about all available markets."""
             result = await self.public_v4.get_market_info()
             return {"markets": list(result)}
 
         @self.mcp.resource("whitebit://assets")
-        async def get_assets_resource() -> Dict:
-            """Get information about all available assets"""
+        async def get_assets_resource() -> dict:
+            """Get information about all available assets."""
             result = await self.public_v2.get_assets()
             return {"assets": result}
 

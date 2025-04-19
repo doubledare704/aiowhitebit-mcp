@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 async def test_server_time():
-    """Test getting server time"""
+    """Test getting server time."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -38,7 +38,7 @@ async def test_server_time():
 
 
 async def test_server_status():
-    """Test getting server status"""
+    """Test getting server status."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -58,7 +58,7 @@ async def test_server_status():
 
 
 async def test_market_info():
-    """Test getting market info"""
+    """Test getting market info."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -85,7 +85,7 @@ async def test_market_info():
 
 
 async def test_market_activity():
-    """Test getting market activity"""
+    """Test getting market activity."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -104,7 +104,7 @@ async def test_market_activity():
             assert len(activities) > 0
             first_activity = activities[0]
             assert isinstance(first_activity, dict)
-            for k, v in first_activity.items():
+            for _k, v in first_activity.items():
                 assert "last_price" in v
                 assert "quote_volume" in v
         finally:
@@ -112,7 +112,7 @@ async def test_market_activity():
 
 
 async def test_orderbook():
-    """Test getting orderbook"""
+    """Test getting orderbook."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -137,7 +137,7 @@ async def test_orderbook():
 
 
 async def test_recent_trades():
-    """Test getting recent trades"""
+    """Test getting recent trades."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -165,7 +165,7 @@ async def test_recent_trades():
 
 
 async def test_fee():
-    """Test getting fee"""
+    """Test getting fee."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -188,7 +188,7 @@ async def test_fee():
 
 
 async def test_asset_status_list():
-    """Test getting asset status list"""
+    """Test getting asset status list."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
@@ -207,14 +207,14 @@ async def test_asset_status_list():
             assert len(assets) > 0
             asset_dict = assets[0]
             assert isinstance(asset_dict, dict)
-            for k, v in asset_dict.items():
+            for _k, v in asset_dict.items():
                 assert "name" in v
         finally:
             await server.close()
 
 
 async def test_market_resource():
-    """Test reading market resource"""
+    """Test reading market resource."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:

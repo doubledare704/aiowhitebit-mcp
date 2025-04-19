@@ -209,7 +209,7 @@ async def test_market_activity():
             assert len(activities) > 0
             first_activity = activities[0]
             assert isinstance(first_activity, dict)
-            for k, v in first_activity.items():
+            for _k, v in first_activity.items():
                 assert "last_price" in v
                 assert "quote_volume" in v
             print("✅ get_market_activity test passed")

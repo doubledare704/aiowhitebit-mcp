@@ -9,7 +9,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, Dict, List
+from typing import Any
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class RateLimitRule:
 
     max_requests: int
     period_seconds: float
-    requests: List[float] = field(default_factory=list)
+    requests: list[float] = field(default_factory=list)
 
     def add_request(self):
         """Add a request to the rule.
@@ -84,7 +84,7 @@ class RateLimiter:
 
     def __init__(self):
         """Initialize the rate limiter."""
-        self.rules: Dict[str, List[RateLimitRule]] = {}
+        self.rules: dict[str, list[RateLimitRule]] = {}
 
     def add_rule(self, name: str, max_requests: int, period_seconds: float):
         """Add a rate limit rule.
@@ -142,7 +142,7 @@ class RateLimiter:
 
         return max(rule.time_until_available() for rule in self.rules[name])
 
-    def get_status(self) -> Dict[str, Dict[str, Any]]:
+    def get_status(self) -> dict[str, dict[str, Any]]:
         """Get the status of all rate limit rules.
 
         Returns:

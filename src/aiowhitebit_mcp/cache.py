@@ -10,7 +10,7 @@ import os
 import time
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class Cache:
         self.name = name
         self.persist = persist
         self.persist_dir = persist_dir or os.path.join(os.path.expanduser("~"), ".whitebit_mcp", "cache")
-        self.entries: Dict[str, CacheEntry] = {}
+        self.entries: dict[str, CacheEntry] = {}
 
         # Create the persist directory if it doesn't exist
         if self.persist:
@@ -162,7 +162,7 @@ class Cache:
         except Exception as e:
             logger.error(f"Error loading cache from disk: {e}")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get statistics about the cache.
 
         Returns:
@@ -188,7 +188,7 @@ class Cache:
 
 
 # Global cache instances
-_caches: Dict[str, Cache] = {}
+_caches: dict[str, Cache] = {}
 
 
 def get_cache(name: str, persist: bool = False, persist_dir: Optional[str] = None) -> Cache:
@@ -258,7 +258,7 @@ def cached(cache_name: str, ttl: float, key_fn: Optional[Callable] = None, persi
     return decorator
 
 
-def get_all_caches() -> Dict[str, Cache]:
+def get_all_caches() -> dict[str, Cache]:
     """Get all caches.
 
     Returns:

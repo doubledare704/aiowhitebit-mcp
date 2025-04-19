@@ -8,7 +8,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class Exchange(ABC):
     """
 
     @abstractmethod
-    async def get_server_time(self) -> Dict[str, Any]:
+    async def get_server_time(self) -> dict[str, Any]:
         """Get current server time.
 
         Returns:
@@ -40,7 +40,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def get_server_status(self) -> Dict[str, Any]:
+    async def get_server_status(self) -> dict[str, Any]:
         """Get current server status.
 
         Returns:
@@ -49,7 +49,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def get_market_info(self) -> List[Dict[str, Any]]:
+    async def get_market_info(self) -> list[dict[str, Any]]:
         """Get information about all available markets.
 
         Returns:
@@ -58,7 +58,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def get_orderbook(self, market: str, limit: int = 100) -> Dict[str, Any]:
+    async def get_orderbook(self, market: str, limit: int = 100) -> dict[str, Any]:
         """Get orderbook for a specific market.
 
         Args:
@@ -71,7 +71,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def get_recent_trades(self, market: str, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_recent_trades(self, market: str, limit: int = 100) -> list[dict[str, Any]]:
         """Get recent trades for a specific market.
 
         Args:
@@ -84,7 +84,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> List[Dict[str, Any]]:
+    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> list[dict[str, Any]]:
         """Get kline (candlestick) data for a specific market.
 
         Args:
@@ -99,7 +99,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def get_trading_balance(self) -> List[Dict[str, Any]]:
+    async def get_trading_balance(self) -> list[dict[str, Any]]:
         """Get trading balance for all assets.
 
         Returns:
@@ -108,7 +108,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def create_limit_order(self, market: str, side: str, amount: str, price: str) -> Dict[str, Any]:
+    async def create_limit_order(self, market: str, side: str, amount: str, price: str) -> dict[str, Any]:
         """Create a limit order.
 
         Args:
@@ -123,7 +123,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def cancel_order(self, order_id: Union[int, str], market: str) -> Dict[str, Any]:
+    async def cancel_order(self, order_id: Union[int, str], market: str) -> dict[str, Any]:
         """Cancel an order.
 
         Args:
@@ -136,7 +136,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def get_order_status(self, order_id: Union[int, str], market: str) -> Dict[str, Any]:
+    async def get_order_status(self, order_id: Union[int, str], market: str) -> dict[str, Any]:
         """Get order status.
 
         Args:
@@ -149,7 +149,7 @@ class Exchange(ABC):
         pass
 
     @abstractmethod
-    async def get_active_orders(self, market: str) -> List[Dict[str, Any]]:
+    async def get_active_orders(self, market: str) -> list[dict[str, Any]]:
         """Get active orders for a market.
 
         Args:
@@ -206,7 +206,7 @@ class WhiteBitExchange(Exchange):
             original_private_v4 = PrivateV4Client(api_key=api_key, secret_key=api_secret)
             self.private_v4 = PrivateV4ClientProxy(original_private_v4)
 
-    async def get_server_time(self) -> Dict[str, Any]:
+    async def get_server_time(self) -> dict[str, Any]:
         """Get current server time.
 
         Returns:
@@ -215,7 +215,7 @@ class WhiteBitExchange(Exchange):
         result = await self.public_v4.get_server_time()
         return result.model_dump() if hasattr(result, "model_dump") else result.dict()
 
-    async def get_server_status(self) -> Dict[str, Any]:
+    async def get_server_status(self) -> dict[str, Any]:
         """Get current server status.
 
         Returns:
@@ -224,7 +224,7 @@ class WhiteBitExchange(Exchange):
         result = await self.public_v4.get_server_status()
         return result.model_dump() if hasattr(result, "model_dump") else result.dict()
 
-    async def get_market_info(self) -> List[Dict[str, Any]]:
+    async def get_market_info(self) -> list[dict[str, Any]]:
         """Get information about all available markets.
 
         Returns:
@@ -233,7 +233,7 @@ class WhiteBitExchange(Exchange):
         result = await self.public_v4.get_market_info()
         return list(result)
 
-    async def get_orderbook(self, market: str, limit: int = 100) -> Dict[str, Any]:
+    async def get_orderbook(self, market: str, limit: int = 100) -> dict[str, Any]:
         """Get orderbook for a specific market.
 
         Args:
@@ -246,7 +246,7 @@ class WhiteBitExchange(Exchange):
         result = await self.public_v4.get_orderbook(market, limit)
         return result.model_dump() if hasattr(result, "model_dump") else result.dict()
 
-    async def get_recent_trades(self, market: str, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_recent_trades(self, market: str, limit: int = 100) -> list[dict[str, Any]]:
         """Get recent trades for a specific market.
 
         Args:
@@ -259,7 +259,7 @@ class WhiteBitExchange(Exchange):
         result = await self.public_v4.get_recent_trades(market, limit)
         return list(result)
 
-    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> List[Dict[str, Any]]:
+    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> list[dict[str, Any]]:
         """Get kline (candlestick) data for a specific market.
 
         Args:
@@ -274,7 +274,7 @@ class WhiteBitExchange(Exchange):
         result = await self.public_v4.get_kline(market, interval, start_time, end_time)
         return list(result)
 
-    async def get_trading_balance(self) -> List[Dict[str, Any]]:
+    async def get_trading_balance(self) -> list[dict[str, Any]]:
         """Get trading balance for all assets.
 
         Returns:
@@ -289,7 +289,7 @@ class WhiteBitExchange(Exchange):
         result = await self.private_v4.get_trading_balance()
         return list(result)
 
-    async def create_limit_order(self, market: str, side: str, amount: str, price: str) -> Dict[str, Any]:
+    async def create_limit_order(self, market: str, side: str, amount: str, price: str) -> dict[str, Any]:
         """Create a limit order.
 
         Args:
@@ -310,7 +310,7 @@ class WhiteBitExchange(Exchange):
         result = await self.private_v4.create_limit_order(market, side, amount, price)
         return result.dict() if hasattr(result, "dict") else result
 
-    async def cancel_order(self, order_id: Union[int, str], market: str) -> Dict[str, Any]:
+    async def cancel_order(self, order_id: Union[int, str], market: str) -> dict[str, Any]:
         """Cancel an order.
 
         Args:
@@ -329,7 +329,7 @@ class WhiteBitExchange(Exchange):
         result = await self.private_v4.cancel_order(int(order_id), market)
         return result.dict() if hasattr(result, "dict") else result
 
-    async def get_order_status(self, order_id: Union[int, str], market: str) -> Dict[str, Any]:
+    async def get_order_status(self, order_id: Union[int, str], market: str) -> dict[str, Any]:
         """Get order status.
 
         Args:
@@ -348,7 +348,7 @@ class WhiteBitExchange(Exchange):
         result = await self.private_v4.get_order_status(int(order_id), market)
         return result.dict() if hasattr(result, "dict") else result
 
-    async def get_active_orders(self, market: str) -> List[Dict[str, Any]]:
+    async def get_active_orders(self, market: str) -> list[dict[str, Any]]:
         """Get active orders for a market.
 
         Args:
@@ -398,7 +398,7 @@ class BinanceExchange(Exchange):
 
         # TODO: Initialize Binance API client
 
-    async def get_server_time(self) -> Dict[str, Any]:
+    async def get_server_time(self) -> dict[str, Any]:
         """Get current server time.
 
         Returns:
@@ -407,7 +407,7 @@ class BinanceExchange(Exchange):
         # TODO: Implement using Binance API
         return {"time": int(asyncio.get_event_loop().time() * 1000)}
 
-    async def get_server_status(self) -> Dict[str, Any]:
+    async def get_server_status(self) -> dict[str, Any]:
         """Get current server status.
 
         Returns:
@@ -416,7 +416,7 @@ class BinanceExchange(Exchange):
         # TODO: Implement using Binance API
         return {"status": "active"}
 
-    async def get_market_info(self) -> List[Dict[str, Any]]:
+    async def get_market_info(self) -> list[dict[str, Any]]:
         """Get information about all available markets.
 
         Returns:
@@ -429,7 +429,7 @@ class BinanceExchange(Exchange):
             {"stock": "XRP", "money": "USDT", "name": "XRPUSDT"},
         ]
 
-    async def get_orderbook(self, market: str, limit: int = 100) -> Dict[str, Any]:
+    async def get_orderbook(self, market: str, limit: int = 100) -> dict[str, Any]:
         """Get orderbook for a specific market.
 
         Args:
@@ -442,7 +442,7 @@ class BinanceExchange(Exchange):
         # TODO: Implement using Binance API
         return {"asks": [["50100", "1.0"], ["50200", "2.0"]], "bids": [["49900", "1.0"], ["49800", "2.0"]]}
 
-    async def get_recent_trades(self, market: str, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_recent_trades(self, market: str, limit: int = 100) -> list[dict[str, Any]]:
         """Get recent trades for a specific market.
 
         Args:
@@ -458,7 +458,7 @@ class BinanceExchange(Exchange):
             {"id": 2, "price": "50100", "amount": "0.2", "type": "sell"},
         ]
 
-    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> List[Dict[str, Any]]:
+    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> list[dict[str, Any]]:
         """Get kline (candlestick) data for a specific market.
 
         Args:
@@ -490,7 +490,7 @@ class BinanceExchange(Exchange):
             },
         ]
 
-    async def get_trading_balance(self) -> List[Dict[str, Any]]:
+    async def get_trading_balance(self) -> list[dict[str, Any]]:
         """Get trading balance for all assets.
 
         Returns:
@@ -509,7 +509,7 @@ class BinanceExchange(Exchange):
             {"currency": "USDT", "available": "10000.0", "freeze": "5000.0"},
         ]
 
-    async def create_limit_order(self, market: str, side: str, amount: str, price: str) -> Dict[str, Any]:
+    async def create_limit_order(self, market: str, side: str, amount: str, price: str) -> dict[str, Any]:
         """Create a limit order.
 
         Args:
@@ -530,7 +530,7 @@ class BinanceExchange(Exchange):
         # TODO: Implement using Binance API
         return {"orderId": 12345, "market": market, "side": side, "amount": amount, "price": price}
 
-    async def cancel_order(self, order_id: Union[int, str], market: str) -> Dict[str, Any]:
+    async def cancel_order(self, order_id: Union[int, str], market: str) -> dict[str, Any]:
         """Cancel an order.
 
         Args:
@@ -549,7 +549,7 @@ class BinanceExchange(Exchange):
         # TODO: Implement using Binance API
         return {"orderId": order_id, "market": market}
 
-    async def get_order_status(self, order_id: Union[int, str], market: str) -> Dict[str, Any]:
+    async def get_order_status(self, order_id: Union[int, str], market: str) -> dict[str, Any]:
         """Get order status.
 
         Args:
@@ -575,7 +575,7 @@ class BinanceExchange(Exchange):
             "status": "active",
         }
 
-    async def get_active_orders(self, market: str) -> List[Dict[str, Any]]:
+    async def get_active_orders(self, market: str) -> list[dict[str, Any]]:
         """Get active orders for a market.
 
         Args:

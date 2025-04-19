@@ -7,7 +7,7 @@ cryptocurrency exchanges.
 import asyncio
 import logging
 import time
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
@@ -55,7 +55,7 @@ class MultiExchangeMCP:
     def __init__(
         self,
         name: str = "Multi-Exchange MCP",
-        exchanges: Optional[Dict[ExchangeType, Dict[str, str]]] = None,
+        exchanges: Optional[dict[ExchangeType, dict[str, str]]] = None,
         default_exchange: ExchangeType = ExchangeType.WHITEBIT,
         web_interface: bool = False,
         web_host: str = "localhost",
@@ -166,8 +166,8 @@ class MultiExchangeMCP:
 
         @self.mcp.tool()
         @track_request("get_server_time")
-        async def get_server_time(exchange: Optional[ExchangeParams] = None) -> Dict:
-            """Get current server time
+        async def get_server_time(exchange: Optional[ExchangeParams] = None) -> dict:
+            """Get current server time.
 
             Args:
                 exchange: Exchange parameters (optional, defaults to default exchange)
@@ -177,8 +177,8 @@ class MultiExchangeMCP:
             return {"time": result}
 
         @self.mcp.tool()
-        async def get_server_status(exchange: Optional[ExchangeParams] = None) -> Dict:
-            """Get current server status
+        async def get_server_status(exchange: Optional[ExchangeParams] = None) -> dict:
+            """Get current server status.
 
             Args:
                 exchange: Exchange parameters (optional, defaults to default exchange)
@@ -189,8 +189,8 @@ class MultiExchangeMCP:
 
         @self.mcp.tool()
         @track_request("get_market_info")
-        async def get_market_info(exchange: Optional[ExchangeParams] = None) -> Dict:
-            """Get information about all available markets
+        async def get_market_info(exchange: Optional[ExchangeParams] = None) -> dict:
+            """Get information about all available markets.
 
             Args:
                 exchange: Exchange parameters (optional, defaults to default exchange)
@@ -200,8 +200,8 @@ class MultiExchangeMCP:
             return {"markets": result}
 
         @self.mcp.tool()
-        async def get_orderbook(market: MarketPair, exchange: Optional[ExchangeParams] = None) -> Dict:
-            """Get orderbook for a specific market
+        async def get_orderbook(market: MarketPair, exchange: Optional[ExchangeParams] = None) -> dict:
+            """Get orderbook for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -212,8 +212,8 @@ class MultiExchangeMCP:
             return {"orderbook": result}
 
         @self.mcp.tool()
-        async def get_recent_trades(market: MarketPair, exchange: Optional[ExchangeParams] = None) -> Dict:
-            """Get recent trades for a specific market
+        async def get_recent_trades(market: MarketPair, exchange: Optional[ExchangeParams] = None) -> dict:
+            """Get recent trades for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -226,8 +226,8 @@ class MultiExchangeMCP:
         @self.mcp.tool()
         async def get_kline(
             market: MarketPair, interval: str, start_time: int, end_time: int, exchange: Optional[ExchangeParams] = None
-        ) -> Dict:
-            """Get kline (candlestick) data for a specific market
+        ) -> dict:
+            """Get kline (candlestick) data for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -242,8 +242,8 @@ class MultiExchangeMCP:
 
         @self.mcp.tool()
         @track_request("get_trading_balance")
-        async def get_trading_balance(exchange: Optional[ExchangeParams] = None) -> Dict:
-            """Get trading balance for all assets
+        async def get_trading_balance(exchange: Optional[ExchangeParams] = None) -> dict:
+            """Get trading balance for all assets.
 
             Args:
                 exchange: Exchange parameters (optional, defaults to default exchange)
@@ -254,8 +254,8 @@ class MultiExchangeMCP:
 
         @self.mcp.tool()
         @track_request("create_limit_order")
-        async def create_limit_order(order: OrderParams, exchange: Optional[ExchangeParams] = None) -> Dict:
-            """Create a limit order
+        async def create_limit_order(order: OrderParams, exchange: Optional[ExchangeParams] = None) -> dict:
+            """Create a limit order.
 
             Args:
                 order: Order parameters
@@ -271,8 +271,8 @@ class MultiExchangeMCP:
         @track_request("cancel_order")
         async def cancel_order(
             order_id: Union[int, str], market: MarketPair, exchange: Optional[ExchangeParams] = None
-        ) -> Dict:
-            """Cancel an order
+        ) -> dict:
+            """Cancel an order.
 
             Args:
                 order_id: Order ID to cancel
@@ -287,8 +287,8 @@ class MultiExchangeMCP:
         @track_request("get_order_status")
         async def get_order_status(
             order_id: Union[int, str], market: MarketPair, exchange: Optional[ExchangeParams] = None
-        ) -> Dict:
-            """Get order status
+        ) -> dict:
+            """Get order status.
 
             Args:
                 order_id: Order ID to check
@@ -301,8 +301,8 @@ class MultiExchangeMCP:
 
         @self.mcp.tool()
         @track_request("get_active_orders")
-        async def get_active_orders(market: MarketPair, exchange: Optional[ExchangeParams] = None) -> Dict:
-            """Get active orders for a market
+        async def get_active_orders(market: MarketPair, exchange: Optional[ExchangeParams] = None) -> dict:
+            """Get active orders for a market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
@@ -313,24 +313,24 @@ class MultiExchangeMCP:
             return {"orders": result}
 
         @self.mcp.tool()
-        async def list_exchanges() -> Dict:
-            """List all available exchanges"""
+        async def list_exchanges() -> dict:
+            """List all available exchanges."""
             return {"exchanges": list(self.exchanges.keys())}
 
         logger.debug("Exchange tools registered successfully")
 
     def _register_resources(self):
-        """Register resources"""
+        """Register resources."""
 
         @self.mcp.resource("exchange://markets")
-        async def get_markets_resource() -> Dict:
-            """Get information about all available markets"""
+        async def get_markets_resource() -> dict:
+            """Get information about all available markets."""
             result = await self._get_exchange().get_market_info()
             return {"markets": result}
 
         @self.mcp.resource("exchange://exchanges")
-        async def get_exchanges_resource() -> Dict:
-            """Get information about all available exchanges"""
+        async def get_exchanges_resource() -> dict:
+            """Get information about all available exchanges."""
             return {"exchanges": list(self.exchanges.keys())}
 
     def _setup_monitoring(self):
@@ -366,23 +366,23 @@ class MultiExchangeMCP:
 
         # Register monitoring tools
         @self.mcp.tool()
-        async def health() -> Dict:
+        async def health() -> dict:
             """Get the health status of the multi-exchange MCP server."""
             return await monitoring_server.health_check.run_checks()
 
         @self.mcp.tool()
-        async def metrics() -> Dict:
+        async def metrics() -> dict:
             """Get metrics for the multi-exchange MCP server."""
             return self.metrics_collector.get_summary()
 
         @self.mcp.tool()
-        async def reset_metrics() -> Dict:
+        async def reset_metrics() -> dict:
             """Reset all metrics."""
             self.metrics_collector.reset()
             return {"status": "ok", "message": "Metrics reset successfully"}
 
         @self.mcp.tool()
-        async def circuit_breakers() -> Dict:
+        async def circuit_breakers() -> dict:
             """Get the status of all circuit breakers."""
             from aiowhitebit_mcp.circuit_breaker import get_all_circuit_breakers
 
@@ -392,7 +392,7 @@ class MultiExchangeMCP:
             return result
 
         @self.mcp.tool()
-        async def reset_circuit_breaker(name: str) -> Dict:
+        async def reset_circuit_breaker(name: str) -> dict:
             """Reset a circuit breaker.
 
             Args:
@@ -434,7 +434,7 @@ class MultiExchangeMCP:
 
 def create_server(
     name: str = "Multi-Exchange MCP",
-    exchanges: Optional[Dict[ExchangeType, Dict[str, str]]] = None,
+    exchanges: Optional[dict[ExchangeType, dict[str, str]]] = None,
     default_exchange: ExchangeType = ExchangeType.WHITEBIT,
     web_interface: bool = False,
     web_host: str = "localhost",

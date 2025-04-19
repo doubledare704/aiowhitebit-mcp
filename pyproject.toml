@@ -37,6 +37,8 @@ markers = [
 [tool.ruff]
 line-length = 120
 target-version = "py39"
+
+[tool.ruff.lint]
 select = [
     "E",    # pycodestyle errors
     "W",    # pycodestyle warnings
@@ -51,10 +53,10 @@ select = [
     "TCH",  # flake8-type-checking
 ]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["aiowhitebit_mcp"]
 
 [tool.pyright]

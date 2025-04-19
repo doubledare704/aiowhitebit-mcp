@@ -8,7 +8,7 @@ from aiowhitebit_mcp.proxy import MockServerTime, PublicV4ClientProxy
 
 
 async def test_proxy():
-    """Test the proxy implementation"""
+    """Test the proxy implementation."""
     # Create a mock server time
     mock_time = MockServerTime(1000000000)
     print(f"Mock server time: {mock_time.model_dump()}")

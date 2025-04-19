@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.asyncio
 async def test_server_time():
-    """Test getting server time"""
+    """Test getting server time."""
     log.debug("test_server_time: START")
     server = create_server(name="WhiteBit MCP Test")
     try:
@@ -56,7 +56,7 @@ async def test_server_time():
 
 @pytest.mark.asyncio
 async def test_market_info():
-    """Test getting market info"""
+    """Test getting market info."""
     server = create_server(name="WhiteBit MCP Test")
     try:
         async with Client(server.mcp) as client:
@@ -83,7 +83,7 @@ async def test_market_info():
 
 @pytest.mark.asyncio
 async def test_market_resource():
-    """Test reading market resource"""
+    """Test reading market resource."""
     server = create_server(name="WhiteBit MCP Test")
     try:
         async with Client(server.mcp) as client:

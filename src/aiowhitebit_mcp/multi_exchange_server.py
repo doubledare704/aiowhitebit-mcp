@@ -352,7 +352,7 @@ class MultiExchangeMCP:
                     duration = time.time() - start_time
                     return {"duration": duration, "server_time": result}
                 except Exception as e:
-                    raise Exception(f"{exchange_type} API health check failed: {e}")
+                    raise Exception(f"{exchange_type} API health check failed: {e}") from e
 
             register_health_check(f"{exchange_type}_api", check_exchange_api)
 

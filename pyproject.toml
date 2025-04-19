@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "aiowhitebit-mcp"
 version = "0.2.1"
 description = "MCP server and client for WhiteBit cryptocurrency exchange API"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "aiowhitebit==0.1.5",
     "fastmcp==2.2.0",
@@ -38,7 +38,7 @@ markers = [
 
 [tool.ruff]
 line-length = 120
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
@@ -62,7 +62,7 @@ convention = "google"
 known-first-party = ["aiowhitebit_mcp"]
 
 [tool.pyright]
-pythonVersion = "3.9"
+pythonVersion = "3.10"
 typeCheckingMode = "standard"
 reportMissingImports = true
 reportMissingTypeStubs = false

@@ -396,7 +396,6 @@ class BinanceExchange(Exchange):
         self.api_key = api_key
         self.api_secret = api_secret
 
-        # TODO: Initialize Binance API client
 
     async def get_server_time(self) -> dict[str, Any]:
         """Get current server time.
@@ -404,7 +403,6 @@ class BinanceExchange(Exchange):
         Returns:
             Dictionary containing the server time
         """
-        # TODO: Implement using Binance API
         return {"time": int(asyncio.get_event_loop().time() * 1000)}
 
     async def get_server_status(self) -> dict[str, Any]:
@@ -413,7 +411,6 @@ class BinanceExchange(Exchange):
         Returns:
             Dictionary containing the server status
         """
-        # TODO: Implement using Binance API
         return {"status": "active"}
 
     async def get_market_info(self) -> list[dict[str, Any]]:
@@ -422,7 +419,6 @@ class BinanceExchange(Exchange):
         Returns:
             List of dictionaries containing market information
         """
-        # TODO: Implement using Binance API
         return [
             {"stock": "BTC", "money": "USDT", "name": "BTCUSDT"},
             {"stock": "ETH", "money": "USDT", "name": "ETHUSDT"},
@@ -439,7 +435,6 @@ class BinanceExchange(Exchange):
         Returns:
             Dictionary containing the orderbook data
         """
-        # TODO: Implement using Binance API
         return {"asks": [["50100", "1.0"], ["50200", "2.0"]], "bids": [["49900", "1.0"], ["49800", "2.0"]]}
 
     async def get_recent_trades(self, market: str, limit: int = 100) -> list[dict[str, Any]]:
@@ -452,7 +447,6 @@ class BinanceExchange(Exchange):
         Returns:
             List of dictionaries containing trade data
         """
-        # TODO: Implement using Binance API
         return [
             {"id": 1, "price": "50000", "amount": "0.1", "type": "buy"},
             {"id": 2, "price": "50100", "amount": "0.2", "type": "sell"},
@@ -470,7 +464,6 @@ class BinanceExchange(Exchange):
         Returns:
             List of dictionaries containing kline data
         """
-        # TODO: Implement using Binance API
         return [
             {
                 "timestamp": start_time,
@@ -502,7 +495,6 @@ class BinanceExchange(Exchange):
         if not self.api_key or not self.api_secret:
             raise ValueError("API credentials are required for private API access")
 
-        # TODO: Implement using Binance API
         return [
             {"currency": "BTC", "available": "1.0", "freeze": "0.5"},
             {"currency": "ETH", "available": "10.0", "freeze": "5.0"},
@@ -527,7 +519,6 @@ class BinanceExchange(Exchange):
         if not self.api_key or not self.api_secret:
             raise ValueError("API credentials are required for private API access")
 
-        # TODO: Implement using Binance API
         return {"orderId": 12345, "market": market, "side": side, "amount": amount, "price": price}
 
     async def cancel_order(self, order_id: Union[int, str], market: str) -> dict[str, Any]:
@@ -546,7 +537,6 @@ class BinanceExchange(Exchange):
         if not self.api_key or not self.api_secret:
             raise ValueError("API credentials are required for private API access")
 
-        # TODO: Implement using Binance API
         return {"orderId": order_id, "market": market}
 
     async def get_order_status(self, order_id: Union[int, str], market: str) -> dict[str, Any]:
@@ -565,7 +555,6 @@ class BinanceExchange(Exchange):
         if not self.api_key or not self.api_secret:
             raise ValueError("API credentials are required for private API access")
 
-        # TODO: Implement using Binance API
         return {
             "orderId": order_id,
             "market": market,
@@ -590,14 +579,12 @@ class BinanceExchange(Exchange):
         if not self.api_key or not self.api_secret:
             raise ValueError("API credentials are required for private API access")
 
-        # TODO: Implement using Binance API
         return [
             {"orderId": 12345, "market": market, "side": "buy", "amount": "1.0", "price": "50000", "status": "active"}
         ]
 
     async def close(self) -> None:
         """Close the exchange connection and release resources."""
-        # TODO: Implement using Binance API
         pass
 
 

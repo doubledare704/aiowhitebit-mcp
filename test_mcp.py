@@ -9,7 +9,7 @@ from src.aiowhitebit_mcp.server import create_server
 
 
 async def test_server_this():
-    """Test the server by making a simple request"""
+    """Test the server by making a simple request."""
     # Create the server
     server = create_server()
     assert True

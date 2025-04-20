@@ -7,7 +7,7 @@ It tests all the public API methods exposed by the server.
 import json
 import logging
 
-from fastmcp import Client
+from fastmcp.client import Client
 
 from aiowhitebit_mcp.server import MarketPair, create_server
 
@@ -59,12 +59,12 @@ async def test_get_tickers():
         data = json.loads(content.text)
         assert isinstance(data, dict)
         assert "tickers" in data
-        tickers = data["tickers"]
+        tickers = data["tickers"]["result"]
         assert isinstance(tickers, list)
         assert len(tickers) > 0
         first_ticker = tickers[0]
         assert isinstance(first_ticker, dict)
-        assert "market" in first_ticker
+        assert "name" in first_ticker
         assert "last" in first_ticker
         print("✅ get_tickers test passed")
     await server.close()

@@ -1,4 +1,3 @@
-from typing import Any, Awaitable
 
 class PublicWebSocketClient:
     async def connect(self) -> None: ...

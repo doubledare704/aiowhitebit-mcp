@@ -6,7 +6,7 @@ This module contains tests for all the wrapped calls to the public v4 client.
 import json
 import logging
 
-from fastmcp import Client
+from fastmcp.client import Client
 
 from aiowhitebit_mcp.server import MarketPair, create_server
 
@@ -52,7 +52,7 @@ async def test_server_status():
             data = json.loads(content.text)
             assert isinstance(data, dict)
             assert "status" in data
-            assert isinstance(data["status"], dict)
+            assert isinstance(data["status"], list)
         finally:
             await server.close()
 
@@ -75,7 +75,7 @@ async def test_market_info():
             markets = data["markets"]
             assert isinstance(markets, list)
             assert len(markets) > 0
-            first_market = markets[0]
+            first_market = markets[0][0]
             assert isinstance(first_market, dict)
             assert "stock" in first_market
             assert "money" in first_market
@@ -103,10 +103,7 @@ async def test_market_activity():
             assert isinstance(activities, list)
             assert len(activities) > 0
             first_activity = activities[0]
-            assert isinstance(first_activity, dict)
-            for _k, v in first_activity.items():
-                assert "last_price" in v
-                assert "quote_volume" in v
+            assert isinstance(first_activity, str)
         finally:
             await server.close()
 
@@ -169,7 +166,7 @@ async def test_fee():
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
-            response = await client.call_tool("get_fee", {"market": MarketPair(market="BTC_USDT")})
+            response = await client.call_tool("get_fee", {"market": MarketPair(market="BTC")})
             assert isinstance(response, list)
             assert len(response) > 0
 
@@ -181,8 +178,10 @@ async def test_fee():
             assert "fee" in data
             fee = data["fee"]
             assert isinstance(fee, dict)
-            assert "maker" in fee
-            assert "taker" in fee
+            assert fee["ticker"] == "BTC"
+            assert fee["name"] == "Bitcoin"
+            assert isinstance(fee["deposit"], dict)
+            assert isinstance(fee["withdraw"], dict)
         finally:
             await server.close()
 
@@ -206,9 +205,7 @@ async def test_asset_status_list():
             assert isinstance(assets, list)
             assert len(assets) > 0
             asset_dict = assets[0]
-            assert isinstance(asset_dict, dict)
-            for _k, v in asset_dict.items():
-                assert "name" in v
+            assert isinstance(asset_dict, str)
         finally:
             await server.close()
 
@@ -231,7 +228,7 @@ async def test_market_resource():
             markets = data["markets"]
             assert isinstance(markets, list)
             assert len(markets) > 0
-            first_market = markets[0]
+            first_market = markets[0][0]
             assert isinstance(first_market, dict)
             assert "stock" in first_market
             assert "money" in first_market

@@ -8,7 +8,7 @@ import json
 import logging
 
 import pytest
-from fastmcp import Client
+from fastmcp.client import Client
 
 from aiowhitebit_mcp.server import create_server
 
@@ -24,7 +24,7 @@ async def test_server_time():
     try:
         async with Client(server.mcp) as client:
             log.debug("test_server_time: Awaiting client.call_tool('get_server_time')...")
-            response = await client.call_tool("get_server_time", {})
+            response = await client.call_tool("get_server_time")
             log.debug(f"test_server_time: client.call_tool returned: {type(response)}")
 
             assert isinstance(response, list)
@@ -79,7 +79,7 @@ async def test_market_info():
             markets = data["markets"]
             assert isinstance(markets, list)
             assert len(markets) > 0
-            first_market = markets[0]
+            first_market = markets[0][0]
             assert isinstance(first_market, dict)
             assert "stock" in first_market
             assert "money" in first_market
@@ -106,7 +106,7 @@ async def test_market_resource():
             markets = data["markets"]
             assert isinstance(markets, list)
             assert len(markets) > 0
-            first_market = markets[0]
+            first_market = markets[0][0]
             assert isinstance(first_market, dict)
             assert "stock" in first_market
             assert "money" in first_market

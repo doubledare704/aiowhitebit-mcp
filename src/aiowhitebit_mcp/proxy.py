@@ -3,13 +3,10 @@
 import logging
 import traceback
 from collections.abc import Callable
-from typing import cast, List
+from typing import cast
 
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
-from aiowhitebit.models import (
-    MarketInfo, RecentTrades, AssetStatus,
-    Fee, Kline, MarketSingleResponse, Tickers
-)
+from aiowhitebit.models import Kline, MarketSingleResponse, Tickers
 from aiowhitebit.models.public.v4 import (
     AssetStatus,
     Fee,
@@ -128,26 +125,16 @@ class PublicV4ClientProxy:
         """
         try:
             logger.debug("Calling get_server_status")
-            result = await self._original_client.get_server_status()
-            # Handle both model_dump and dict methods
-            try:
-                status_data = result.model_dump()
-                logger.debug(f"get_server_status result: {status_data}")
-            except AttributeError:
-                status_data = result.dict()
-                logger.debug(f"get_server_status result (using dict): {status_data}")
-            return result
+            return await self._original_client.get_server_status()
+
         except Exception as e:
             logger.error(f"Error in get_server_status: {e}")
             logger.debug(traceback.format_exc())
-            return ServerStatus(["active"])  # Return a mock object for testing
+            return ServerStatus(["pong"])  # Return a mock object for testing
 
     @cached(cache_name="market_info", ttl=300, persist=True)  # Market info changes infrequently
-    async def get_market_info(self, market: str) -> List[MarketInfo]:
+    async def get_market_info(self) -> list[MarketInfo]:
         """Get information about a specific market.
-
-        Args:
-            market: Market pair (e.g., 'BTC_USDT')
 
         Returns:
             List[MarketInfo]: List of market information objects
@@ -156,21 +143,16 @@ class PublicV4ClientProxy:
             Exception: If there is an error communicating with the WhiteBit API
         """
         try:
-            logger.debug(f"Calling get_market_info for {market}")
-            result = await self._original_client.get_market_info(market)
+            result = await self._original_client.get_market_info()
             logger.debug(f"get_market_info result: {result}")
-            return cast(List[MarketInfo], [result])
-        except Exception as e:
-            logger.error(f"Error in get_market_info for {market}: {e}")
+            return cast("list[MarketInfo]", [result])
+        except Exception:
             logger.debug(traceback.format_exc())
-            return cast(List[MarketInfo], [{"name": "BTC_USDT", "status": "active"}])
+            return cast("list[MarketInfo]", [{"name": "BTC_USDT", "status": "active"}])
 
     @optimized(ttl_seconds=30)  # Market activity changes frequently
-    async def get_market_activity(self, market: str) -> List[MarketActivity]:
+    async def get_market_activity(self) -> list[MarketActivity]:
         """Get activity information for a specific market (last price, volume, etc.).
-
-        Args:
-            market: Market pair (e.g., 'BTC_USDT')
 
         Returns:
             List[MarketActivity]: List of market activity objects
@@ -179,14 +161,12 @@ class PublicV4ClientProxy:
             Exception: If there is an error communicating with the WhiteBit API
         """
         try:
-            logger.debug(f"Calling get_market_activity for {market}")
-            result = await self._original_client.get_market_activity(market)
+            result = await self._original_client.get_market_activity()
             logger.debug(f"get_market_activity result: {result}")
-            return cast(List[MarketActivity], result)
-        except Exception as e:
-            logger.error(f"Error in get_market_activity for {market}: {e}")
+            return cast("list[MarketActivity]", result)
+        except Exception:
             logger.debug(traceback.format_exc())
-            return cast(List[MarketActivity], [{"market": "BTC_USDT", "price": "50000", "volume": "100"}])
+            return cast("list[MarketActivity]", [{"market": "BTC_USDT", "price": "50000", "volume": "100"}])
 
     @optimized(ttl_seconds=5, rate_limit_name="get_orderbook")  # Orderbook changes very frequently
     @circuit_breaker(name="public_v4_get_orderbook", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
@@ -229,7 +209,7 @@ class PublicV4ClientProxy:
     @optimized(ttl_seconds=10, rate_limit_name="get_recent_trades")  # Recent trades change frequently
     @circuit_breaker(name="public_v4_get_recent_trades", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
     @rate_limited("get_recent_trades")
-    async def get_recent_trades(self, market: str, limit: int = 100) -> List[RecentTrades]:
+    async def get_recent_trades(self, market: str, limit: int = 100) -> list[RecentTrades]:
         """Get recent trades for a specific market.
 
         Args:
@@ -246,11 +226,11 @@ class PublicV4ClientProxy:
             logger.debug(f"Calling get_recent_trades for {market} with limit={limit}")
             result = await self._original_client.get_recent_trades(market, str(limit))
             logger.debug(f"get_recent_trades result: {result}")
-            return cast(List[RecentTrades], [result])
+            return cast("list[RecentTrades]", [result])
         except Exception as e:
             logger.error(f"Error in get_recent_trades for {market}: {e}")
             logger.debug(traceback.format_exc())
-            return cast(List[RecentTrades], [{"id": 1, "price": "50000", "amount": "0.1", "type": "buy"}])
+            return cast("list[RecentTrades]", [{"id": 1, "price": "50000", "amount": "0.1", "type": "buy"}])
 
     @cached(cache_name="fee", ttl=3600, persist=True)  # Fees rarely change
     async def get_fee(self, market: str) -> Fee:
@@ -267,33 +247,20 @@ class PublicV4ClientProxy:
         """
         try:
             logger.debug(f"Calling get_fee for {market}")
-            result = await self._original_client.get_fee(market)
-            # Handle both model_dump and dict methods
-            try:
-                fee_data = result.model_dump()
-                logger.debug(f"get_fee result: {fee_data}")
-            except AttributeError:
-                fee_data = result.dict()
-                logger.debug(f"get_fee result (using dict): {fee_data}")
-            return cast(Fee, result)
+            result = await self._original_client.get_fee()
+            if market in result:
+                result = result[market]
+            fee_data = result.model_dump()
+            logger.debug(f"get_fee result: {fee_data}")
+            return cast("Fee", result)
+
         except Exception as e:
             logger.error(f"Error in get_fee for {market}: {e}")
             logger.debug(traceback.format_exc())
-            return Fee(
-                ticker=market,
-                name=market,
-                maker="0.001",
-                taker="0.001",
-                deposit="0",
-                withdraw="0",
-                is_depositable=True,
-                is_withdrawal=True,
-                is_api_withdrawal=True,
-                is_api_depositable=True
-            )
+            raise e
 
     @cached(cache_name="asset_status", ttl=1800, persist=True)  # Asset status changes infrequently
-    async def get_asset_status_list(self) -> List[AssetStatus]:
+    async def get_asset_status_list(self) -> list[AssetStatus]:
         """Get status of all assets.
 
         Returns:
@@ -306,11 +273,11 @@ class PublicV4ClientProxy:
             logger.debug("Calling get_asset_status_list")
             result = await self._original_client.get_asset_status_list()
             logger.debug(f"get_asset_status_list result: {result}")
-            return cast(List[AssetStatus], result)
+            return cast("list[AssetStatus]", result)
         except Exception as e:
             logger.error(f"Error in get_asset_status_list: {e}")
             logger.debug(traceback.format_exc())
-            return cast(List[AssetStatus], [{"name": "BTC", "status": "active"}])
+            return cast("list[AssetStatus]", [{"name": "BTC", "status": "active"}])
 
     @optimized(ttl_seconds=60, rate_limit_name="public")  # Kline data changes frequently but not too much
     @circuit_breaker(name="public_v4_get_kline", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
@@ -432,7 +399,7 @@ class PublicV1ClientProxy:
         try:
             logger.debug("Calling get_tickers")
             result = await self._original_client.get_tickers()
-            logger.debug(f"get_tickers result: {len(result)} tickers")
+            logger.debug(f"get_tickers result: {len(result.result)} tickers")
             return result
         except Exception as e:
             logger.error(f"Error in get_tickers: {e}")

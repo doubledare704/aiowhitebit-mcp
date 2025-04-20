@@ -8,7 +8,7 @@ import asyncio
 import logging
 import sys
 
-from fastmcp import Client
+from fastmcp.client import Client
 
 from aiowhitebit_mcp.circuit_breaker import circuit_breaker, get_circuit_breaker, reset_circuit_breaker
 from aiowhitebit_mcp.server import create_server

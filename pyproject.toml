@@ -63,7 +63,7 @@ known-first-party = ["aiowhitebit_mcp"]
 
 [tool.pyright]
 include = ["src"]
-exclude = ["**/node_modules", "**/__pycache__"]
+exclude = ["**/node_modules", "**/__pycache__", "exzample/**"]
 typeCheckingMode = "basic"
 pythonVersion = "3.10"
 stubPath = "typings"

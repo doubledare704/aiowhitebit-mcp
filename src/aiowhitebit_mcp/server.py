@@ -7,7 +7,7 @@ functionality as MCP tools.
 import asyncio
 import logging
 import time
-from typing import Dict, Any
+from typing import Any
 
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
 from aiowhitebit.clients.websocket import PublicWebSocketClient
@@ -165,7 +165,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
             """Get ticker information for all markets."""
             logger.debug("Tool call: get_tickers")
             result = await self.public_v1.get_tickers()
-            logger.debug(f"get_tickers result: {len(result)} tickers")
+            logger.debug(f"get_tickers result: {len(result.result)} tickers")
             return {"tickers": result}
 
         logger.debug("Public v1 API tools registered successfully")
@@ -208,7 +208,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
         @track_request("get_server_time")
         @self.mcp.tool()
-        async def get_server_time(self) -> Dict[str, Any]:
+        async def get_server_time() -> dict[str, Any]:
             """Get current server time."""
             result = await self.public_v4.get_server_time()
             return {"time": result.model_dump() if hasattr(result, "model_dump") else result}
@@ -217,7 +217,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         async def get_server_status() -> dict:
             """Get current server status."""
             result = await self.public_v4.get_server_status()
-            return {"status": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
+            return {"status": result}
 
         @track_request("get_market_info")
         @self.mcp.tool()
@@ -374,7 +374,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
         # Register monitoring tools
         @self.mcp.tool()
-        async def health(self) -> Dict[str, Any]:
+        async def health(self) -> dict[str, Any]:
             """Get the health status of the WhiteBit MCP server."""
             result = await monitoring_server.health_check.run_checks()
             return result
@@ -431,6 +431,18 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
             """Get information about all available assets."""
             result = await self.public_v2.get_assets()
             return {"assets": result}
+
+        # result = await self.client.read_resource(f"whitebit://markets/{market}")
+        @self.mcp.resource("whitebit://markets/{market}")
+        async def get_market_resource(market: str) -> dict:
+            """Get information about a specific market."""
+            result = await self.public_v4.get_market_info()
+            for m in result[0]:
+                if m["name"] == market:
+                    result = m
+                    break
+            return {"market": result}
+
 
     async def close(self):
         """Close the server and release resources.

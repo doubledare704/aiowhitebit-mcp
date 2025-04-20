@@ -62,14 +62,10 @@ convention = "google"
 known-first-party = ["aiowhitebit_mcp"]
 
 [tool.pyright]
+include = ["src"]
+exclude = ["**/node_modules", "**/__pycache__"]
+typeCheckingMode = "basic"
+pythonVersion = "3.10"
+stubPath = "typings"
 venvPath = "."
 venv = ".venv"
-pythonVersion = "3.10"
-typeCheckingMode = "basic"
-reportMissingImports = true
-reportMissingTypeStubs = false
-include = ["src/**/*.py"]
-exclude = ["**/node_modules", "**/__pycache__", "tests/**"]
-
-# Add type stubs for packages without them
-stubPath = "typings"

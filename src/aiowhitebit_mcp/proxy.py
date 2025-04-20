@@ -3,10 +3,13 @@
 import logging
 import traceback
 from collections.abc import Callable
-from typing import TypeVar, cast
+from typing import cast, List
 
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
-from aiowhitebit.models import Kline
+from aiowhitebit.models import (
+    MarketInfo, RecentTrades, AssetStatus,
+    Fee, Kline, MarketSingleResponse, Tickers
+)
 from aiowhitebit.models.public.v4 import (
     AssetStatus,
     Fee,
@@ -51,131 +54,6 @@ def optimized(ttl_seconds: int = 60, rate_limit_name: str = "public"):
     return decorator
 
 
-# Custom implementations for missing models
-class Trade:
-    """Trade data model."""
-
-    def __init__(self, id: int, time: int, price: str, amount: str, type: str):
-        """Initialize a Trade instance.
-
-        Args:
-            id: Trade ID
-            time: Trade timestamp
-            price: Trade price
-            amount: Trade amount
-            type: Trade type
-        """
-        self.id = id
-        self.time = time
-        self.price = price
-        self.amount = amount
-        self.type = type
-
-    def dict(self):
-        """Convert the trade object to a dictionary.
-
-        Returns:
-            dict: Dictionary representation of the trade
-        """
-        return {"id": self.id, "time": self.time, "price": self.price, "amount": self.amount, "type": self.type}
-
-
-class OrderStatus:
-    """Order status model."""
-
-    def __init__(self, status: str):
-        """Initialize OrderStatus.
-
-        Args:
-            status: The status of the order
-        """
-        self.status = status
-
-    def dict(self):
-        """Convert the order status to a dictionary.
-
-        Returns:
-            dict: Dictionary representation of the order status
-        """
-        return {"status": self.status}
-
-
-T = TypeVar("T", bound="OrderInfo")
-
-
-class OrderInfo:
-    """Order information model."""
-
-    def __init__(
-            self,
-            order_id: int,
-            market: str,
-            type: str,  # Required parameter
-            side: str,
-            status: str,
-            price: str,
-            amount: str,
-            timestamp: int,
-    ) -> None:
-        """Initialize OrderInfo.
-
-        Args:
-            order_id: Order identifier
-            market: Market pair
-            type: Order type
-            side: Order side (buy/sell)
-            status: Order status
-            price: Order price
-            amount: Order amount
-            timestamp: Order timestamp
-        """
-        self.order_id = order_id
-        self.market = market
-        self.type = type
-        self.side = side
-        self.status = status
-        self.price = price
-        self.amount = amount
-        self.timestamp = timestamp
-
-    def dict(self):
-        """Convert the order info to a dictionary.
-
-        Returns:
-            dict: Dictionary representation of the order info
-        """
-        return {
-            "orderId": self.order_id,
-            "market": self.market,
-            "type": self.type,
-            "side": self.side,
-            "status": self.status,
-            "price": self.price,
-            "amount": self.amount,
-            "timestamp": self.timestamp,
-        }
-
-
-class DealsResponse:
-    """Deals response model."""
-
-    def __init__(self, deals: list):
-        """Initialize DealsResponse.
-
-        Args:
-            deals: List of deals
-        """
-        self.deals = deals
-
-    def dict(self):
-        """Convert the object to a dictionary.
-
-        Returns:
-            dict: Dictionary representation of the object
-        """
-        return {"deals": [deal.dict() if hasattr(deal, "dict") else deal for deal in self.deals]}
-
-
 # Fix the Kline conversion
 def convert_to_klines(data: list[dict[str, int | str]]) -> list[Kline]:
     """Convert raw data to Kline objects."""
@@ -190,111 +68,6 @@ def convert_to_klines(data: list[dict[str, int | str]]) -> list[Kline]:
         })
         for item in data
     ]
-
-
-# Mock classes for testing if needed
-class MockServerTime:
-    """Mock implementation of ServerTime for testing."""
-
-    def __init__(self, time: int):
-        """Initialize MockServerTime.
-
-        Args:
-            time: Server time value
-        """
-        self.time = time
-
-    def model_dump(self):
-        """Convert to dictionary representation."""
-        return {"time": self.time}
-
-    def dict(self):
-        """Legacy method for backward compatibility."""
-        return self.model_dump()
-
-
-class MockServerStatus:
-    """Mock implementation of ServerStatus for testing."""
-
-    def __init__(self, status: str):
-        """Initialize MockServerStatus.
-
-        Args:
-            status: Server status string
-        """
-        self.status = status
-
-    def model_dump(self):
-        """Convert to dictionary representation."""
-        return {"status": self.status}
-
-    def dict(self):
-        """Legacy method for backward compatibility."""
-        return self.model_dump()
-
-
-class MockOrderbook:
-    """Mock implementation of Orderbook for testing."""
-
-    def __init__(self):
-        """Initialize MockOrderbook with empty asks and bids lists."""
-        self.asks = []
-        self.bids = []
-
-    def model_dump(self):
-        """Convert to dictionary representation."""
-        return {"asks": self.asks, "bids": self.bids}
-
-    def dict(self):
-        """Legacy method for backward compatibility."""
-        return self.model_dump()
-
-
-class MockFee:
-    """Mock implementation of Fee for testing."""
-
-    def __init__(self):
-        """Initialize MockFee with default maker and taker fees."""
-        self.maker = "0.001"
-        self.taker = "0.001"
-
-    def model_dump(self):
-        """Convert to dictionary representation."""
-        return {"maker": self.maker, "taker": self.taker}
-
-    def dict(self):
-        """Legacy method for backward compatibility."""
-        return self.model_dump()
-
-
-class MockTicker:
-    """Mock implementation of Ticker for testing."""
-
-    def __init__(self, market="BTC_USDT"):
-        """Initialize MockTicker.
-
-        Args:
-            market: Market pair (default: "BTC_USDT")
-        """
-        self.market = market
-        self.last = "50000"
-        self.high = "51000"
-        self.low = "49000"
-        self.volume = "100"
-        self.bid = "49900"
-        self.ask = "50100"
-
-    def dict(self):
-        """Convert to dictionary representation."""
-        return {
-            "market": self.market,
-            "last": self.last,
-            "high": self.high,
-            "low": self.low,
-            "volume": self.volume,
-            "bid": self.bid,
-            "ask": self.ask,
-        }
 
 
 class PublicV4ClientProxy:
@@ -340,8 +113,7 @@ class PublicV4ClientProxy:
         except Exception as e:
             logger.error(f"Error in get_server_time: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock object for testing
-            return MockServerTime(1000000000)
+            return ServerTime(time=1000000000)
 
     @optimized(ttl_seconds=60, rate_limit_name="public")  # Server status doesn't change often
     @circuit_breaker(name="public_v4_get_server_status", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
@@ -368,12 +140,14 @@ class PublicV4ClientProxy:
         except Exception as e:
             logger.error(f"Error in get_server_status: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock object for testing
-            return MockServerStatus("active")
+            return ServerStatus(["active"])  # Return a mock object for testing
 
     @cached(cache_name="market_info", ttl=300, persist=True)  # Market info changes infrequently
-    async def get_market_info(self) -> list[MarketInfo]:
-        """Get information about all available markets.
+    async def get_market_info(self, market: str) -> List[MarketInfo]:
+        """Get information about a specific market.
+
+        Args:
+            market: Market pair (e.g., 'BTC_USDT')
 
         Returns:
             List[MarketInfo]: List of market information objects
@@ -382,19 +156,21 @@ class PublicV4ClientProxy:
             Exception: If there is an error communicating with the WhiteBit API
         """
         try:
-            logger.debug("Calling get_market_info")
-            result = await self._original_client.get_market_info()
-            logger.debug(f"get_market_info result: {len(result)} markets")
-            return result
+            logger.debug(f"Calling get_market_info for {market}")
+            result = await self._original_client.get_market_info(market)
+            logger.debug(f"get_market_info result: {result}")
+            return cast(List[MarketInfo], [result])
         except Exception as e:
-            logger.error(f"Error in get_market_info: {e}")
+            logger.error(f"Error in get_market_info for {market}: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock list for testing
-            return [{"stock": "BTC", "money": "USDT", "name": "BTC_USDT"}]
+            return cast(List[MarketInfo], [{"name": "BTC_USDT", "status": "active"}])
 
     @optimized(ttl_seconds=30)  # Market activity changes frequently
-    async def get_market_activity(self) -> list[MarketActivity]:
-        """Get activity information for all markets (last price, volume, etc.).
+    async def get_market_activity(self, market: str) -> List[MarketActivity]:
+        """Get activity information for a specific market (last price, volume, etc.).
+
+        Args:
+            market: Market pair (e.g., 'BTC_USDT')
 
         Returns:
             List[MarketActivity]: List of market activity objects
@@ -403,15 +179,14 @@ class PublicV4ClientProxy:
             Exception: If there is an error communicating with the WhiteBit API
         """
         try:
-            logger.debug("Calling get_market_activity")
-            result = await self._original_client.get_market_activity()
-            logger.debug(f"get_market_activity result: {len(result)} activities")
-            return [result]
+            logger.debug(f"Calling get_market_activity for {market}")
+            result = await self._original_client.get_market_activity(market)
+            logger.debug(f"get_market_activity result: {result}")
+            return cast(List[MarketActivity], result)
         except Exception as e:
-            logger.error(f"Error in get_market_activity: {e}")
+            logger.error(f"Error in get_market_activity for {market}: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock list for testing
-            return [{"market": "BTC_USDT", "last": "50000", "volume": "100"}]
+            return cast(List[MarketActivity], [{"market": "BTC_USDT", "price": "50000", "volume": "100"}])
 
     @optimized(ttl_seconds=5, rate_limit_name="get_orderbook")  # Orderbook changes very frequently
     @circuit_breaker(name="public_v4_get_orderbook", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
@@ -448,13 +223,13 @@ class PublicV4ClientProxy:
         except Exception as e:
             logger.error(f"Error in get_orderbook for {market}: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock object for testing
-            return MockOrderbook()
+            return Orderbook(ticker_id=market, asks=[], bids=[],
+                             timestamp=1000000000)  # Return a mock object for testing
 
     @optimized(ttl_seconds=10, rate_limit_name="get_recent_trades")  # Recent trades change frequently
     @circuit_breaker(name="public_v4_get_recent_trades", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
     @rate_limited("get_recent_trades")
-    async def get_recent_trades(self, market: str, limit: int = 100) -> list[RecentTrades]:
+    async def get_recent_trades(self, market: str, limit: int = 100) -> List[RecentTrades]:
         """Get recent trades for a specific market.
 
         Args:
@@ -469,14 +244,13 @@ class PublicV4ClientProxy:
         """
         try:
             logger.debug(f"Calling get_recent_trades for {market} with limit={limit}")
-            result = await self._original_client.get_recent_trades(market, limit)
-            logger.debug(f"get_recent_trades result: {len(result)} trades")
-            return result
+            result = await self._original_client.get_recent_trades(market, str(limit))
+            logger.debug(f"get_recent_trades result: {result}")
+            return cast(List[RecentTrades], [result])
         except Exception as e:
             logger.error(f"Error in get_recent_trades for {market}: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock list for testing
-            return [{"id": 1, "price": "50000", "amount": "0.1", "type": "buy"}]
+            return cast(List[RecentTrades], [{"id": 1, "price": "50000", "amount": "0.1", "type": "buy"}])
 
     @cached(cache_name="fee", ttl=3600, persist=True)  # Fees rarely change
     async def get_fee(self, market: str) -> Fee:
@@ -501,15 +275,25 @@ class PublicV4ClientProxy:
             except AttributeError:
                 fee_data = result.dict()
                 logger.debug(f"get_fee result (using dict): {fee_data}")
-            return result
+            return cast(Fee, result)
         except Exception as e:
             logger.error(f"Error in get_fee for {market}: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock object for testing
-            return MockFee()
+            return Fee(
+                ticker=market,
+                name=market,
+                maker="0.001",
+                taker="0.001",
+                deposit="0",
+                withdraw="0",
+                is_depositable=True,
+                is_withdrawal=True,
+                is_api_withdrawal=True,
+                is_api_depositable=True
+            )
 
     @cached(cache_name="asset_status", ttl=1800, persist=True)  # Asset status changes infrequently
-    async def get_asset_status_list(self) -> list[AssetStatus]:
+    async def get_asset_status_list(self) -> List[AssetStatus]:
         """Get status of all assets.
 
         Returns:
@@ -521,13 +305,12 @@ class PublicV4ClientProxy:
         try:
             logger.debug("Calling get_asset_status_list")
             result = await self._original_client.get_asset_status_list()
-            logger.debug(f"get_asset_status_list result: {len(result)} assets")
-            return [result]
+            logger.debug(f"get_asset_status_list result: {result}")
+            return cast(List[AssetStatus], result)
         except Exception as e:
             logger.error(f"Error in get_asset_status_list: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock list for testing
-            return [{"name": "BTC", "status": "active"}]
+            return cast(List[AssetStatus], [{"name": "BTC", "status": "active"}])
 
     @optimized(ttl_seconds=60, rate_limit_name="public")  # Kline data changes frequently but not too much
     @circuit_breaker(name="public_v4_get_kline", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
@@ -613,7 +396,7 @@ class PublicV1ClientProxy:
         logger.info("PublicV1ClientProxy initialized")
 
     @optimized(ttl_seconds=30, rate_limit_name="public")  # Ticker data changes frequently
-    async def get_ticker(self, market: str):
+    async def get_ticker(self, market: str) -> MarketSingleResponse:
         """Get ticker information for a specific market.
 
         Args:
@@ -627,17 +410,17 @@ class PublicV1ClientProxy:
         """
         try:
             logger.debug(f"Calling get_ticker for {market}")
-            result = await self._original_client.get_ticker(market)
+            result = await self._original_client.get_single_market(market)
             logger.debug(f"get_ticker result: {result.dict() if hasattr(result, 'dict') else result}")
             return result
         except Exception as e:
             logger.error(f"Error in get_ticker for {market}: {e}")
             logger.debug(traceback.format_exc())
             # Return a mock object for testing
-            return MockTicker(market)
+            return MarketSingleResponse(market=market, last="50000", high="51000", low="49000", volume="100")
 
     @optimized(ttl_seconds=30, rate_limit_name="public")  # Tickers data changes frequently
-    async def get_tickers(self):
+    async def get_tickers(self) -> Tickers:
         """Get ticker information for all markets.
 
         Returns:
@@ -655,7 +438,7 @@ class PublicV1ClientProxy:
             logger.error(f"Error in get_tickers: {e}")
             logger.debug(traceback.format_exc())
             # Return a mock list for testing
-            return [MockTicker("BTC_USDT").dict(), MockTicker("ETH_USDT").dict()]
+            return Tickers(result=[])
 
     async def close(self) -> None:
         """Close the client and release resources.

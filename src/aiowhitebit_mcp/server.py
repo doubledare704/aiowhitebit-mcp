@@ -7,6 +7,7 @@ functionality as MCP tools.
 import asyncio
 import logging
 import time
+from typing import Dict, Any
 
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
 from aiowhitebit.clients.websocket import PublicWebSocketClient
@@ -207,10 +208,10 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
         @track_request("get_server_time")
         @self.mcp.tool()
-        async def get_server_time() -> dict:
+        async def get_server_time(self) -> Dict[str, Any]:
             """Get current server time."""
             result = await self.public_v4.get_server_time()
-            return {"time": result.model_dump() if hasattr(result, "model_dump") else result.model_dump()}
+            return {"time": result.model_dump() if hasattr(result, "model_dump") else result}
 
         @self.mcp.tool()
         async def get_server_status() -> dict:
@@ -373,9 +374,10 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
         # Register monitoring tools
         @self.mcp.tool()
-        async def health() -> dict:
+        async def health(self) -> Dict[str, Any]:
             """Get the health status of the WhiteBit MCP server."""
-            return await monitoring_server.health_check.run_checks()
+            result = await monitoring_server.health_check.run_checks()
+            return result
 
         @self.mcp.tool()
         async def metrics() -> dict:

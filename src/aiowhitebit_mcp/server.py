@@ -7,18 +7,15 @@ functionality as MCP tools.
 import asyncio
 import logging
 import time
-from typing import Optional
 
-from aiowhitebit.clients.private import PrivateV4Client
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
 from aiowhitebit.clients.websocket import PublicWebSocketClient
-from aiowhitebit.models import CancelOrderRequest, CreateLimitOrderRequest
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
 from aiowhitebit_mcp.metrics import get_metrics_collector, track_request
 from aiowhitebit_mcp.monitoring import get_monitoring_server, register_health_check
-from aiowhitebit_mcp.proxy import PrivateV4ClientProxy, PublicV1ClientProxy, PublicV2ClientProxy, PublicV4ClientProxy
+from aiowhitebit_mcp.proxy import PublicV1ClientProxy, PublicV2ClientProxy, PublicV4ClientProxy
 from aiowhitebit_mcp.rate_limiter import configure_rate_limiter
 from aiowhitebit_mcp.web_interface import start_web_interface, stop_web_interface
 
@@ -70,8 +67,6 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
     def __init__(
         self,
         name: str = "WhiteBit MCP",
-        api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
         web_interface: bool = False,
         web_host: str = "localhost",
         web_port: int = 8080,
@@ -83,15 +78,11 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
         Args:
             name: Name of the MCP server
-            api_key: WhiteBit API key (optional, required for private API access)
-            api_secret: WhiteBit API secret (optional, required for private API access)
             web_interface: Whether to start the web interface
             web_host: Host to bind the web interface to
             web_port: Port to bind the web interface to
         """
         self.name = name
-        self.api_key = api_key
-        self.api_secret = api_secret
         self.web_interface = web_interface
         self.web_host = web_host
         self.web_port = web_port
@@ -120,15 +111,8 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         self.public_v4 = PublicV4ClientProxy(original_public_v4)
         logger.debug("Public clients initialized")
 
-        # Initialize private client if credentials are provided
-        self.private_v4: Optional[PrivateV4Client] = None
-        if api_key and api_secret:
-            logger.debug("Initializing private client with provided credentials")
-            original_private_v4 = PrivateV4Client(api_key=api_key, secret_key=api_secret)
-            self.private_v4 = PrivateV4ClientProxy(original_private_v4)
-            logger.debug("Private client initialized")
-        else:
-            logger.debug("No API credentials provided, private API access will be unavailable")
+        # Private API access is no longer supported
+        logger.debug("Private API access is no longer supported")
 
         # WebSocket client will be initialized on demand
         self.ws_client = None
@@ -138,11 +122,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         logger.debug("Registering public tools")
         self._register_public_tools()
 
-        if self.private_v4:
-            logger.debug("Registering private tools")
-            self._register_private_tools()
-        else:
-            logger.debug("Skipping private tools registration (no credentials provided)")
+        logger.debug("Private API access is no longer supported")
 
         # Register websocket tools
         logger.debug("Registering websocket tools")
@@ -319,97 +299,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         self._register_public_v4_tools()
         logger.debug("All public API tools registered successfully")
 
-    def _register_private_tools(self):
-        """Register private API tools.
 
-        This method registers all the private API endpoints as MCP tools.
-        It wraps the methods from the PrivateV4Client and exposes them as
-        MCP tools that can be called by MCP clients.
-
-        Note: This method is only called if API credentials are provided.
-        """
-        if not self.private_v4:
-            logger.warning("Cannot register private API tools: no API credentials provided")
-            return
-
-        logger.debug("Registering private API tools")
-
-        @track_request("get_trading_balance")
-        @self.mcp.tool()
-        async def get_trading_balance() -> dict:
-            """Get trading balance for all assets."""
-            logger.debug("Tool call: get_trading_balance")
-            result = await self.private_v4.get_trading_balance()
-            logger.debug("get_trading_balance result received")
-            return {"balance": result}
-
-        @track_request("create_limit_order")
-        @self.mcp.tool()
-        async def create_limit_order(order: OrderParams) -> dict:
-            """Create a limit order.
-
-            Args:
-                order: Order parameters
-            """
-            logger.debug(f"Tool call: create_limit_order for {order.market}")
-            result = await self.private_v4.create_limit_order(
-                CreateLimitOrderRequest(
-                    market=order.market,
-                    side=order.side,
-                    amount=str(order.amount),
-                    price=str(order.price),
-                )
-            )
-            logger.debug(f"create_limit_order result: {result}")
-            return {"order": result}
-
-        @track_request("cancel_order")
-        @self.mcp.tool()
-        async def cancel_order(order_id: int, market: MarketPair) -> dict:
-            """Cancel an order.
-
-            Args:
-                order_id: Order ID to cancel
-                market: Market pair (e.g., 'BTC_USDT')
-            """
-            logger.debug(f"Tool call: cancel_order for order {order_id} in {market.market}")
-            result = await self.private_v4.cancel_order(
-                CancelOrderRequest(
-                    orderId=order_id,
-                    market=market.market,
-                )
-            )
-            logger.debug(f"cancel_order result: {result}")
-            return {"order": result}
-
-        @track_request("get_order_status")
-        @self.mcp.tool()
-        async def get_order_status(order_id: int, market: MarketPair) -> dict:
-            """Get order status.
-
-            Args:
-                order_id: Order ID to check
-                market: Market pair (e.g., 'BTC_USDT')
-            """
-            logger.debug(f"Tool call: get_order_status for order {order_id} in {market.market}")
-            result = await self.private_v4.get_order_status(order_id, market.market)
-            logger.debug(f"get_order_status result: {result}")
-            return {"order": result}
-
-        @track_request("get_active_orders")
-        @self.mcp.tool()
-        async def get_active_orders(market: MarketPair) -> dict:
-            """Get active orders for a market.
-
-            Args:
-                market: Market pair (e.g., 'BTC_USDT')
-            """
-            logger.debug(f"Tool call: get_active_orders for {market.market}")
-            result = await self.private_v4.get_active_orders(market.market)
-            logger.debug(f"get_active_orders result: {len(result)} orders")
-            return {"orders": result}
-
-        logger.debug("Private API tools registered successfully")
 
     def _register_websocket_tools(self):
         """Register WebSocket tools.
@@ -556,11 +446,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         await self.public_v4.close()
         logger.debug("Public clients closed")
 
-        # Close private client if it exists
-        if self.private_v4:
-            logger.debug("Closing private client")
-            await self.private_v4.close()
-            logger.debug("Private client closed")
+        # Private API access is no longer supported
 
         # Close websocket client if it exists
         if self.ws_client:
@@ -579,8 +465,8 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
     def run(
         self,
         transport: TransportType = "stdio",
-        host: Optional[str] = None,
-        port: Optional[int] = None,
+        host: str | None = None,
+        port: int | None = None,
     ) -> None:
         """Run the MCP server.
 
@@ -594,8 +480,6 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
 def create_server(
     name: str = "WhiteBit MCP",
-    api_key: Optional[str] = None,
-    api_secret: Optional[str] = None,
     web_interface: bool = False,
     web_host: str = "localhost",
     web_port: int = 8080,
@@ -604,8 +488,6 @@ def create_server(
 
     Args:
         name: Name of the MCP server
-        api_key: WhiteBit API key for private endpoints
-        api_secret: WhiteBit API secret for private endpoints
         web_interface: Whether to enable the web interface
         web_host: Host to bind the web interface to
         web_port: Port to bind the web interface to
@@ -616,8 +498,6 @@ def create_server(
     logger.info(f"Creating new WhiteBit MCP server: {name}")
     return WhiteBitMCP(
         name=name,
-        api_key=api_key,
-        api_secret=api_secret,
         web_interface=web_interface,
         web_host=web_host,
         web_port=web_port,

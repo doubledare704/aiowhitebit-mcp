@@ -1,13 +1,12 @@
 """Proxy implementation for WhiteBit API clients."""
 
 import logging
-import time
 import traceback
-from typing import Callable, TypeVar, Union, cast
+from collections.abc import Callable
+from typing import TypeVar, cast
 
-from aiowhitebit.clients.private import PrivateV4Client
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
-from aiowhitebit.models import CancelOrderResponse, CreateOrderResponse, Kline, TradingBalanceList
+from aiowhitebit.models import Kline
 from aiowhitebit.models.public.v4 import (
     AssetStatus,
     Fee,
@@ -108,15 +107,15 @@ class OrderInfo:
     """Order information model."""
 
     def __init__(
-        self,
-        order_id: int,
-        market: str,
-        type: str,  # Required parameter
-        side: str,
-        status: str,
-        price: str,
-        amount: str,
-        timestamp: int,
+            self,
+            order_id: int,
+            market: str,
+            type: str,  # Required parameter
+            side: str,
+            status: str,
+            price: str,
+            amount: str,
+            timestamp: int,
     ) -> None:
         """Initialize OrderInfo.
 
@@ -178,7 +177,7 @@ class DealsResponse:
 
 
 # Fix the Kline conversion
-def convert_to_klines(data: list[dict[str, Union[int, str]]]) -> list[Kline]:
+def convert_to_klines(data: list[dict[str, int | str]]) -> list[Kline]:
     """Convert raw data to Kline objects."""
     return [
         cast("Kline", {
@@ -296,102 +295,6 @@ class MockTicker:
             "bid": self.bid,
             "ask": self.ask,
         }
-
-
-class MockTradingBalanceItem:
-    """Mock implementation of TradingBalanceItem for testing."""
-
-    def __init__(self, currency="BTC", available="1.0", freeze="0.5"):
-        """Initialize MockTradingBalanceItem.
-
-        Args:
-            currency: Currency code (default: "BTC")
-            available: Available balance (default: "1.0")
-            freeze: Frozen balance (default: "0.5")
-        """
-        self.currency = currency
-        self.available = available
-        self.freeze = freeze
-
-    def dict(self):
-        """Convert to dictionary representation."""
-        return {"currency": self.currency, "available": self.available, "freeze": self.freeze}
-
-
-class MockCreateOrderResponse:
-    """Mock implementation of CreateOrderResponse for testing."""
-
-    def __init__(self, order_id=12345, market="BTC_USDT", side="buy", amount="1.0", price="50000"):
-        """Initialize MockCreateOrderResponse.
-
-        Args:
-            order_id: Order ID (default: 12345)
-            market: Market pair (default: "BTC_USDT")
-            side: Order side (default: "buy")
-            amount: Order amount (default: "1.0")
-            price: Order price (default: "50000")
-        """
-        self.order_id = order_id
-        self.market = market
-        self.side = side
-        self.amount = amount
-        self.price = price
-
-    def dict(self):
-        """Convert to dictionary representation."""
-        return {
-            "orderId": self.order_id,
-            "market": self.market,
-            "side": self.side,
-            "amount": self.amount,
-            "price": self.price,
-        }
-
-
-class MockCancelOrderResponse:
-    """Mock implementation of CancelOrderResponse for testing."""
-
-    def __init__(self, order_id=12345, market="BTC_USDT"):
-        """Initialize MockCancelOrderResponse.
-
-        Args:
-            order_id: Order ID (default: 12345)
-            market: Market pair (default: "BTC_USDT")
-        """
-        self.order_id = order_id
-        self.market = market
-
-    def dict(self):
-        """Convert to dictionary representation."""
-        return {"orderId": self.order_id, "market": self.market}
-
-
-class MockOrderInfo:
-    """Mock implementation of OrderInfo for testing."""
-
-    def __init__(
-        self, order_id=12345, market="BTC_USDT", side="buy", amount="1.0", price="50000", status="active"
-    ) -> None:
-        """Initialize mock order info."""
-        self.order_id = order_id
-        self.market = market
-        self.side = side
-        self.amount = amount
-        self.price = price
-        self.status = status
-
-    def to_order_info(self) -> OrderInfo:
-        """Convert mock to real OrderInfo."""
-        return OrderInfo(
-            order_id=self.order_id,
-            market=self.market,
-            side=self.side,
-            amount=self.amount,
-            price=self.price,
-            status=self.status,
-            type="limit",  # Adding default type
-            timestamp=int(time.time()),  # Adding current timestamp
-        )
 
 
 class PublicV4ClientProxy:
@@ -831,130 +734,6 @@ class PublicV2ClientProxy:
                 "ETH": {"name": "Ethereum", "unified_cryptoasset_id": 1027, "can_withdraw": True, "can_deposit": True},
                 "USDT": {"name": "Tether", "unified_cryptoasset_id": 825, "can_withdraw": True, "can_deposit": True},
             }
-
-    async def close(self) -> None:
-        """Close the client and release resources.
-
-        This method should be called when the client is no longer needed to ensure
-        proper cleanup of resources.
-        """
-        try:
-            logger.debug("Closing client")
-            await self._original_client.close()
-            logger.debug("Client closed successfully")
-        except Exception as e:
-            logger.error(f"Error closing client: {e}")
-            logger.debug(traceback.format_exc())
-
-
-class PrivateV4ClientProxy:
-    """Proxy class for PrivateV4Client that routes all calls through the MCP server.
-
-    This class wraps the original PrivateV4Client and provides the same interface,
-    but with additional error handling and logging. It also supports mock responses
-    for testing purposes.
-    """
-
-    def __init__(self, original_client: PrivateV4Client):
-        """Initialize the proxy with the original client.
-
-        Args:
-            original_client: The original PrivateV4Client instance to wrap
-        """
-        self._original_client = original_client
-        logger.info("PrivateV4ClientProxy initialized")
-
-    @optimized(ttl_seconds=10, rate_limit_name="private")  # Balance changes frequently
-    @circuit_breaker(name="private_v4_get_trading_balance", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
-    async def get_trading_balance(self) -> TradingBalanceList:
-        """Get trading balance for all assets.
-
-        Returns:
-            TradingBalanceList: List of trading balance items
-
-        Raises:
-            Exception: If there is an error communicating with the WhiteBit API
-        """
-        try:
-            logger.debug("Calling get_trading_balance")
-            result = await self._original_client.get_trading_balance()
-            logger.debug(f"get_trading_balance result: {len(result)} assets")
-            return result
-        except Exception as e:
-            logger.error(f"Error in get_trading_balance: {e}")
-            logger.debug(traceback.format_exc())
-            # Return a mock list for testing
-            return [MockTradingBalanceItem("BTC"), MockTradingBalanceItem("ETH"), MockTradingBalanceItem("USDT")]
-
-    @circuit_breaker(name="private_v4_create_limit_order", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
-    @rate_limited("create_limit_order")
-    @rate_limited("private")
-    async def create_limit_order(self, market: str, side: str, amount: str, price: str) -> CreateOrderResponse:
-        """Create a limit order.
-
-        Args:
-            market: Market pair (e.g., 'BTC_USDT')
-            side: Order side ('buy' or 'sell')
-            amount: Order amount in base currency
-            price: Order price in quote currency
-
-        Returns:
-            CreateOrderResponse: Response containing the created order details
-
-        Raises:
-            Exception: If there is an error communicating with the WhiteBit API
-        """
-        try:
-            logger.debug(f"Calling create_limit_order for {market} {side} {amount} @ {price}")
-            result = await self._original_client.create_limit_order(market, side, amount, price)
-            logger.debug(f"create_limit_order result: {result.dict() if hasattr(result, 'dict') else result}")
-            return result
-        except Exception as e:
-            logger.error(f"Error in create_limit_order for {market}: {e}")
-            logger.debug(traceback.format_exc())
-            # Return a mock object for testing
-            return MockCreateOrderResponse(market=market, side=side, amount=amount, price=price)
-
-    @circuit_breaker(name="private_v4_cancel_order", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
-    @rate_limited("cancel_order")
-    @rate_limited("private")
-    async def cancel_order(self, order_id: int, market: str) -> CancelOrderResponse:
-        """Cancel an order.
-
-        Args:
-            order_id: Order ID to cancel
-            market: Market pair (e.g., 'BTC_USDT')
-
-        Returns:
-            CancelOrderResponse: Response containing the canceled order details
-
-        Raises:
-            Exception: If there is an error communicating with the WhiteBit API
-        """
-        try:
-            logger.debug(f"Calling cancel_order for order {order_id} in {market}")
-            result = await self._original_client.cancel_order(order_id, market)
-            logger.debug(f"cancel_order result: {result.dict() if hasattr(result, 'dict') else result}")
-            return result
-        except Exception as e:
-            logger.error(f"Error in cancel_order for order {order_id} in {market}: {e}")
-            logger.debug(traceback.format_exc())
-            # Return a mock object for testing
-            return MockCancelOrderResponse(order_id=order_id, market=market)
-
-    @optimized(ttl_seconds=5, rate_limit_name="private")  # Order status changes frequently
-    @circuit_breaker(name="private_v4_get_order_status", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
-    async def get_order_status(self, order_id: int) -> OrderInfo:
-        """Get order status."""
-        mock = MockOrderInfo(order_id=order_id)
-        return mock.to_order_info()
-
-    @optimized(ttl_seconds=60, rate_limit_name="private")  # Active orders don't change that frequently
-    @circuit_breaker(name="private_v4_get_active_orders", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
-    async def get_active_orders(self) -> list[OrderInfo]:
-        """Get active orders."""
-        mocks = [MockOrderInfo(), MockOrderInfo()]
-        return [mock.to_order_info() for mock in mocks]
 
     async def close(self) -> None:
         """Close the client and release resources.

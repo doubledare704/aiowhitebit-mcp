@@ -1,15 +1,14 @@
 """Client for interacting with the WhiteBit MCP server."""
 
 import os
-from typing import Optional
 
-from fastmcp import Client
+from fastmcp.client import Client
 
 
 class WhiteBitMCPClient:
     """Client for interacting with the WhiteBit MCP server."""
 
-    def __init__(self, server_url: Optional[str] = None):
+    def __init__(self, server_url: str | None = None):
         """Initialize the WhiteBit MCP client.
 
         Args:
@@ -88,74 +87,6 @@ class WhiteBitMCPClient:
             market: Market pair (e.g., 'BTC_USDT')
         """
         result = await self.client.call_tool("get_fee", {"market": {"market": market}})
-        return result.content[0].text
-
-    async def get_trading_balance(self) -> dict:
-        """Get trading balance for all assets."""
-        result = await self.client.call_tool("get_trading_balance", {})
-        return result.content[0].text
-
-    async def create_limit_order(self, market: str, side: str, amount: float, price: float) -> dict:
-        """Create a limit order.
-
-        Args:
-            market: Market pair (e.g., 'BTC_USDT')
-            side: Order side ('buy' or 'sell')
-            amount: Order amount in base currency
-            price: Order price in quote currency
-        """
-        result = await self.client.call_tool(
-            "create_limit_order", {"order": {"market": market, "side": side, "amount": amount, "price": price}}
-        )
-        return result.content[0].text
-
-    async def create_stop_limit_order(
-        self, market: str, side: str, amount: float, price: float, activation_price: float
-    ) -> dict:
-        """Create a stop limit order.
-
-        Args:
-            market: Market pair (e.g., 'BTC_USDT')
-            side: Order side ('buy' or 'sell')
-            amount: Order amount in base currency
-            price: Order price in quote currency
-            activation_price: Price at which the order will be activated
-        """
-        result = await self.client.call_tool(
-            "create_stop_limit_order",
-            {
-                "order": {
-                    "market": market,
-                    "side": side,
-                    "amount": amount,
-                    "price": price,
-                    "activation_price": activation_price,
-                }
-            },
-        )
-        return result.content[0].text
-
-    async def active_orders(self, market: Optional[str] = None) -> dict:
-        """Get active orders.
-
-        Args:
-            market: Market pair (optional, if not provided returns orders for all markets)
-        """
-        params = {}
-        if market:
-            params["market"] = {"market": market}
-
-        result = await self.client.call_tool("active_orders", params)
-        return result.content[0].text
-
-    async def cancel_order(self, order_id: int, market: str) -> dict:
-        """Cancel an order.
-
-        Args:
-            order_id: Order ID
-            market: Market pair
-        """
-        result = await self.client.call_tool("cancel_order", {"order_id": order_id, "market": {"market": market}})
         return result.content[0].text
 
     async def get_last_price(self, market: str) -> dict:

@@ -1,6 +1,6 @@
 """Type definitions for the aiowhitebit-mcp package."""
 
-from typing import Literal, Optional, Protocol
+from typing import Literal, Protocol
 
 TransportType = Literal["stdio", "sse", "ws"]
 
@@ -11,8 +11,8 @@ class WhiteBitMCPProtocol(Protocol):
     def run(
         self,
         transport: TransportType = "stdio",
-        host: Optional[str] = None,
-        port: Optional[int] = None,
+        host: str | None = None,
+        port: int | None = None,
     ) -> None:
         """Run the MCP server.
 

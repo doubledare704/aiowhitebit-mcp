@@ -7,7 +7,6 @@ This script runs the WhiteBit MCP server with the web interface enabled.
 import argparse
 import asyncio
 import logging
-import os
 import signal
 import sys
 
@@ -27,8 +26,6 @@ async def run_server(args):
     # Create the server
     server = create_server(
         name=args.name,
-        api_key=args.api_key,
-        api_secret=args.api_secret,
         web_interface=True,
         web_host=args.host,
         web_port=args.port,
@@ -65,18 +62,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run the WhiteBit MCP server")
 
     parser.add_argument("--name", default="WhiteBit MCP", help="Name of the MCP server")
-
-    parser.add_argument(
-        "--api-key",
-        default=os.environ.get("WHITEBIT_API_KEY"),
-        help="WhiteBit API key (can also be set with WHITEBIT_API_KEY environment variable)",
-    )
-
-    parser.add_argument(
-        "--api-secret",
-        default=os.environ.get("WHITEBIT_API_SECRET"),
-        help="WhiteBit API secret (can also be set with WHITEBIT_API_SECRET environment variable)",
-    )
 
     parser.add_argument("--host", default="localhost", help="Host to bind the web interface to")
 

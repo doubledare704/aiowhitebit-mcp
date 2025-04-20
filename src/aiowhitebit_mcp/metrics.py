@@ -8,7 +8,6 @@ import logging
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Optional
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -20,18 +19,18 @@ class RequestMetrics:
 
     endpoint: str
     start_time: float
-    end_time: Optional[float] = None
-    success: Optional[bool] = None
-    error: Optional[str] = None
+    end_time: float | None = None
+    success: bool | None = None
+    error: str | None = None
 
     @property
-    def duration(self) -> Optional[float]:
+    def duration(self) -> float | None:
         """Get the duration of the request in seconds."""
         if self.end_time is None:
             return None
         return self.end_time - self.start_time
 
-    def complete(self, success: bool, error: Optional[str] = None) -> None:
+    def complete(self, success: bool, error: str | None = None) -> None:
         """Mark the request as complete.
 
         Args:
@@ -52,8 +51,8 @@ class EndpointMetrics:
     success_count: int = 0
     error_count: int = 0
     total_duration: float = 0.0
-    min_duration: Optional[float] = None
-    max_duration: Optional[float] = None
+    min_duration: float | None = None
+    max_duration: float | None = None
     durations: list[float] = field(default_factory=list)
     errors: dict[str, int] = field(default_factory=lambda: defaultdict(int))
 
@@ -84,21 +83,21 @@ class EndpointMetrics:
                 self.max_duration = duration
 
     @property
-    def avg_duration(self) -> Optional[float]:
+    def avg_duration(self) -> float | None:
         """Get the average duration of requests to this endpoint."""
         if not self.durations:
             return None
         return self.total_duration / len(self.durations)
 
     @property
-    def success_rate(self) -> Optional[float]:
+    def success_rate(self) -> float | None:
         """Get the success rate of requests to this endpoint."""
         if self.request_count == 0:
             return None
         return self.success_count / self.request_count
 
     @property
-    def p50(self) -> Optional[float]:
+    def p50(self) -> float | None:
         """Get the 50th percentile (median) duration."""
         if not self.durations:
             return None
@@ -106,7 +105,7 @@ class EndpointMetrics:
         return sorted_durations[len(sorted_durations) // 2]
 
     @property
-    def p95(self) -> Optional[float]:
+    def p95(self) -> float | None:
         """Get the 95th percentile duration."""
         if not self.durations:
             return None
@@ -115,7 +114,7 @@ class EndpointMetrics:
         return sorted_durations[index]
 
     @property
-    def p99(self) -> Optional[float]:
+    def p99(self) -> float | None:
         """Get the 99th percentile duration."""
         if not self.durations:
             return None
@@ -155,7 +154,7 @@ class MetricsCollector:
 
         return request_id
 
-    def end_request(self, request_id: str, success: bool, error: Optional[str] = None) -> None:
+    def end_request(self, request_id: str, success: bool, error: str | None = None) -> None:
         """End tracking a request.
 
         Args:
@@ -176,7 +175,7 @@ class MetricsCollector:
 
         self.endpoints[endpoint].add_request(metrics)
 
-    def get_endpoint_metrics(self, endpoint: str) -> Optional[EndpointMetrics]:
+    def get_endpoint_metrics(self, endpoint: str) -> EndpointMetrics | None:
         """Get metrics for a specific endpoint.
 
         Args:

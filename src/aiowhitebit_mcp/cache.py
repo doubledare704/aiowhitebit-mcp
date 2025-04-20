@@ -8,9 +8,10 @@ import json
 import logging
 import os
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ class Cache:
     performance and reduce API calls.
     """
 
-    def __init__(self, name: str, persist: bool = False, persist_dir: Optional[str] = None):
+    def __init__(self, name: str, persist: bool = False, persist_dir: str | None = None):
         """Initialize the cache.
 
         Args:
@@ -69,7 +70,7 @@ class Cache:
             # Load the cache from disk
             self._load_from_disk()
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get a value from the cache.
 
         Args:
@@ -191,7 +192,7 @@ class Cache:
 _caches: dict[str, Cache] = {}
 
 
-def get_cache(name: str, persist: bool = False, persist_dir: Optional[str] = None) -> Cache:
+def get_cache(name: str, persist: bool = False, persist_dir: str | None = None) -> Cache:
     """Get a cache by name.
 
     If the cache doesn't exist, it will be created.
@@ -210,7 +211,7 @@ def get_cache(name: str, persist: bool = False, persist_dir: Optional[str] = Non
     return _caches[name]
 
 
-def cached(cache_name: str, ttl: float, key_fn: Optional[Callable] = None, persist: bool = False):
+def cached(cache_name: str, ttl: float, key_fn: Callable | None = None, persist: bool = False):
     """Decorator to cache the result of a function.
 
     Args:

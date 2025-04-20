@@ -1,14 +1,11 @@
 """Example script to run the WhiteBit MCP server with SSE transport."""
 
-import os
 
 from aiowhitebit_mcp.server import create_server
 
 # Create the server
 server = create_server(
-    name="WhiteBit API Server",
-    api_key=os.environ.get("WHITEBIT_API_KEY"),
-    api_secret=os.environ.get("WHITEBIT_API_SECRET"),
+    name="WhiteBit API Server"
 )
 
 # Run the server with SSE transport

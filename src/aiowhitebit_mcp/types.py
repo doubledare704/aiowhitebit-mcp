@@ -8,7 +8,7 @@ TransportType = Literal["stdio", "sse"]
 class WhiteBitMCPProtocol(Protocol):
     """Protocol defining the WhiteBitMCP interface."""
 
-    def run(
+    async def run(
         self,
         transport: TransportType = "stdio",
         host: str | None = None,

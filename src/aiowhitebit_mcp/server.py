@@ -476,13 +476,13 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
         logger.info(f"{self.name} server closed successfully")
 
-    def run(
+    async def run(
         self,
         transport: TransportType = "stdio",
         host: str | None = None,
         port: int | None = None,
     ) -> None:
-        """Run the MCP server.
+        """Run the MCP server asynchronously.
 
         Args:
             transport: Transport type to use ("stdio" or "sse")
@@ -495,20 +495,20 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         if transport not in ["stdio", "sse"]:
             raise ValueError(f"Unsupported transport: {transport}. Use 'stdio' or 'sse'.")
         
+        # Prepare transport kwargs
+        transport_kwargs = {}
+        
         # For SSE transport, we need to configure the host and port
         if transport == "sse":
-            if host is None:
-                host = "127.0.0.1"
-            if port is None:
-                port = 8000
+            if host is not None:
+                transport_kwargs["host"] = host
+            if port is not None:
+                transport_kwargs["port"] = port
             
-            logger.info(f"Binding to {host}:{port}")
-            
-            # Use the specific method for SSE transport
-            self.mcp.run(transport=transport, host=host, port=port)
-        else:
-            # For stdio, use the standard run method
-            self.mcp.run(transport=transport)
+            logger.info(f"Binding to {transport_kwargs.get('host', '127.0.0.1')}:{transport_kwargs.get('port', 8000)}")
+        
+        # Run the server asynchronously with the specified transport
+        await self.mcp.run_async(transport=transport, **transport_kwargs)
 
 
 def create_server(

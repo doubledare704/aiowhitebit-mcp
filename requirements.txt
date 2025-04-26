@@ -1,5 +1,5 @@
 aiowhitebit==0.2.0
-fastmcp==2.2.0
+fastmcp==2.2.5
 
 pydantic~=2.11.3
 aiohttp~=3.11.16

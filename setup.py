@@ -28,7 +28,7 @@ setup(
     package_dir={"": "src"},
     install_requires=[
         "aiowhitebit==0.2.0",
-        "fastmcp==2.2.0",
+        "fastmcp==2.2.5",
     ],
     entry_points={
         "console_scripts": [

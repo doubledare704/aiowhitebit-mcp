@@ -27,7 +27,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "aiowhitebit==0.1.5",
+        "aiowhitebit==0.2.0",
         "fastmcp==2.2.0",
     ],
     entry_points={

@@ -1,0 +1,23 @@
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Health Checks</h5>
+    </div>
+    <div class="card-body">
+        <p class="card-text">
+            Overall Status: <span class="status-{health_status_class}">{health_status}</span>
+        </p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Check</th>
+                    <th>Status</th>
+                    <th>Last Updated</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {health_checks}
+            </tbody>
+        </table>
+    </div>
+</div>

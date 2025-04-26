@@ -2,7 +2,7 @@
 
 from typing import Literal, Protocol
 
-TransportType = Literal["stdio", "sse", "ws"]
+TransportType = Literal["stdio", "sse"]
 
 
 class WhiteBitMCPProtocol(Protocol):

@@ -485,11 +485,30 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         """Run the MCP server.
 
         Args:
-            transport: Transport type to use
-            host: Host to bind to (for network transports)
-            port: Port to bind to (for network transports)
+            transport: Transport type to use ("stdio" or "sse")
+            host: Host to bind to (for sse transport)
+            port: Port to bind to (for sse transport)
         """
-        # Implementation here
+        logger.info(f"Starting {self.name} server with {transport} transport")
+        
+        # FastMCP only supports "stdio" and "sse" transports
+        if transport not in ["stdio", "sse"]:
+            raise ValueError(f"Unsupported transport: {transport}. Use 'stdio' or 'sse'.")
+        
+        # For SSE transport, we need to configure the host and port
+        if transport == "sse":
+            if host is None:
+                host = "127.0.0.1"
+            if port is None:
+                port = 8000
+            
+            logger.info(f"Binding to {host}:{port}")
+            
+            # Use the specific method for SSE transport
+            self.mcp.run(transport=transport, host=host, port=port)
+        else:
+            # For stdio, use the standard run method
+            self.mcp.run(transport=transport)
 
 
 def create_server(

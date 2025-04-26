@@ -5,6 +5,7 @@ for the WhiteBit MCP server.
 """
 
 import logging
+import os
 from datetime import datetime
 
 from aiohttp import web
@@ -18,271 +19,21 @@ from aiowhitebit_mcp.rate_limiter import get_rate_limiter
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# HTML templates
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{title}</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .card {{
-            margin-bottom: 20px;
-        }}
-        .status-healthy {{
-            color: green;
-        }}
-        .status-unhealthy {{
-            color: red;
-        }}
-        .circuit-closed {{
-            color: green;
-        }}
-        .circuit-open {{
-            color: red;
-        }}
-        .circuit-half-open {{
-            color: orange;
-        }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1 class="mt-4 mb-4">{title}</h1>
-        <div class="row">
-            <div class="col-md-3">
-                <div class="list-group">
-                    <a href="/" class="list-group-item list-group-item-action">Dashboard</a>
-                    <a href="/health" class="list-group-item list-group-item-action">Health Checks</a>
-                    <a href="/metrics" class="list-group-item list-group-item-action">Metrics</a>
-                    <a href="/circuit-breakers" class="list-group-item list-group-item-action">Circuit Breakers</a>
-                    <a href="/rate-limiter" class="list-group-item list-group-item-action">Rate Limiter</a>
-                    <a href="/cache" class="list-group-item list-group-item-action">Cache</a>
-                </div>
-            </div>
-            <div class="col-md-9">
-                {content}
-            </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Auto-refresh the page every 10 seconds
-        setTimeout(function() {{
-            location.reload();
-        }}, 10000);
-    </script>
-</body>
-</html>
-"""
+# Load HTML templates from files
+def load_template(filename):
+    """Load a template from a file."""
+    template_dir = os.path.join(os.path.dirname(__file__), "templates")
+    with open(os.path.join(template_dir, filename), "r") as f:
+        return f.read()
 
-DASHBOARD_TEMPLATE = """
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Health Status</h5>
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    <span class="status-{health_status_class}">{health_status}</span>
-                </p>
-                <a href="/health" class="btn btn-primary">View Details</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Circuit Breakers</h5>
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    {circuit_breaker_summary}
-                </p>
-                <a href="/circuit-breakers" class="btn btn-primary">View Details</a>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Metrics Summary</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="metricsChart"></canvas>
-                <a href="/metrics" class="btn btn-primary mt-3">View Details</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Cache Summary</h5>
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    {cache_summary}
-                </p>
-                <a href="/cache" class="btn btn-primary">View Details</a>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-    var ctx = document.getElementById('metricsChart').getContext('2d');
-    var chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: {metrics_labels},
-            datasets: [{
-                label: 'Request Count',
-                data: {metrics_data},
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-</script>
-"""
-
-HEALTH_TEMPLATE = """
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title">Health Checks</h5>
-    </div>
-    <div class="card-body">
-        <p class="card-text">
-            Overall Status: <span class="status-{health_status_class}">{health_status}</span>
-        </p>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Check</th>
-                    <th>Status</th>
-                    <th>Last Updated</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
-            <tbody>
-                {health_checks}
-            </tbody>
-        </table>
-    </div>
-</div>
-"""
-
-METRICS_TEMPLATE = """
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title">Metrics</h5>
-    </div>
-    <div class="card-body">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Endpoint</th>
-                    <th>Request Count</th>
-                    <th>Success Rate</th>
-                    <th>Avg Duration (ms)</th>
-                    <th>P95 Duration (ms)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {metrics_rows}
-            </tbody>
-        </table>
-        <form action="/reset-metrics" method="post" class="mt-3">
-            <button type="submit" class="btn btn-danger">Reset Metrics</button>
-        </form>
-    </div>
-</div>
-"""
-
-CIRCUIT_BREAKERS_TEMPLATE = """
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title">Circuit Breakers</h5>
-    </div>
-    <div class="card-body">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>State</th>
-                    <th>Failure Count</th>
-                    <th>Last Failure</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {circuit_breaker_rows}
-            </tbody>
-        </table>
-    </div>
-</div>
-"""
-
-RATE_LIMITER_TEMPLATE = """
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title">Rate Limiter</h5>
-    </div>
-    <div class="card-body">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Endpoint</th>
-                    <th>Status</th>
-                    <th>Time Until Available</th>
-                    <th>Rules</th>
-                </tr>
-            </thead>
-            <tbody>
-                {rate_limiter_rows}
-            </tbody>
-        </table>
-    </div>
-</div>
-"""
-
-CACHE_TEMPLATE = """
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title">Cache</h5>
-    </div>
-    <div class="card-body">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Valid Entries</th>
-                    <th>Invalid Entries</th>
-                    <th>Total Entries</th>
-                    <th>Persist</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {cache_rows}
-            </tbody>
-        </table>
-    </div>
-</div>
-"""
+# Load templates
+HTML_TEMPLATE = load_template("base.html")
+DASHBOARD_TEMPLATE = load_template("dashboard.html")
+HEALTH_TEMPLATE = load_template("health.html")
+METRICS_TEMPLATE = load_template("metrics.html")
+CIRCUIT_BREAKERS_TEMPLATE = load_template("circuit_breakers.html")
+RATE_LIMITER_TEMPLATE = load_template("rate_limiter.html")
+CACHE_TEMPLATE = load_template("cache.html")
 
 
 class WebInterface:

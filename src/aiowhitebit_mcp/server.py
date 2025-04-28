@@ -300,8 +300,6 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         self._register_public_v4_tools()
         logger.debug("All public API tools registered successfully")
 
-
-
     def _register_websocket_tools(self):
         """Register WebSocket tools.
 
@@ -443,7 +441,6 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
                     break
             return {"market": result}
 
-
     async def close(self):
         """Close the server and release resources.
 
@@ -490,23 +487,23 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
             port: Port to bind to (for sse transport)
         """
         logger.info(f"Starting {self.name} server with {transport} transport")
-        
+
         # FastMCP only supports "stdio" and "sse" transports
         if transport not in ["stdio", "sse"]:
             raise ValueError(f"Unsupported transport: {transport}. Use 'stdio' or 'sse'.")
-        
+
         # Prepare transport kwargs
         transport_kwargs = {}
-        
+
         # For SSE transport, we need to configure the host and port
         if transport == "sse":
             if host is not None:
                 transport_kwargs["host"] = host
             if port is not None:
                 transport_kwargs["port"] = port
-            
+
             logger.info(f"Binding to {transport_kwargs.get('host', '127.0.0.1')}:{transport_kwargs.get('port', 8000)}")
-        
+
         # Run the server asynchronously with the specified transport
         await self.mcp.run_async(transport=transport, **transport_kwargs)
 

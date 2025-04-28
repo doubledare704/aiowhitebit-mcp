@@ -9,7 +9,7 @@ import logging
 import os
 import time
 from collections.abc import Callable
-from dataclasses import dataclass, asdict, is_dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from functools import wraps
 from typing import Any
 
@@ -19,37 +19,39 @@ logger = logging.getLogger(__name__)
 
 class CustomJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder that handles non-serializable objects."""
-    
+
     def default(self, obj):
+        """Handle non-serializable objects."""
         # Handle dataclasses
-        if is_dataclass(obj):
+        if is_dataclass(obj) and not isinstance(obj, type):
             return asdict(obj)
-        
+
         # Handle objects with __dict__ attribute
-        if hasattr(obj, "__dict__"):
+        if hasattr(obj, "__dict__") and not isinstance(obj, type):
             return obj.__dict__
-            
+
         # Handle objects with to_dict or as_dict methods
-        if hasattr(obj, "to_dict"):
+        if not isinstance(obj, type) and hasattr(obj, "to_dict"):
             return obj.to_dict()
-        if hasattr(obj, "as_dict"):
+        if not isinstance(obj, type) and hasattr(obj, "as_dict"):
             return obj.as_dict()
-            
+
         # Handle objects with __str__ method as a last resort
         try:
             return str(obj)
-        except:
+        except Exception as e:
+            logger.error(f"Error serializing object: {e}")
             return f"<Non-serializable object of type {type(obj).__name__}>"
 
 
 def _serialize_for_cache(obj: Any) -> Any:
     """Serialize an object for caching.
-    
+
     Attempts to convert complex objects to JSON-serializable types.
-    
+
     Args:
         obj: The object to serialize
-        
+
     Returns:
         A JSON-serializable representation of the object
     """
@@ -181,11 +183,7 @@ class Cache:
             for key, entry in self.entries.items():
                 # Only persist valid entries
                 if entry.is_valid():
-                    entries_dict[key] = {
-                        "value": entry.value,
-                        "timestamp": entry.timestamp,
-                        "ttl": entry.ttl
-                    }
+                    entries_dict[key] = {"value": entry.value, "timestamp": entry.timestamp, "ttl": entry.ttl}
 
             # Write the entries to disk using the custom encoder
             cache_file = os.path.join(self.persist_dir, f"{self.name}.json")

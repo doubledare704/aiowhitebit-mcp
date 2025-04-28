@@ -1,4 +1,3 @@
-
 class TextContent:
     content: str
 

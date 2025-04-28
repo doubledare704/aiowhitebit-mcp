@@ -1,3 +1,5 @@
+"""Example script demonstrating WhiteBit MCP client with stdio transport."""
+
 import asyncio
 
 from aiowhitebit_mcp.client import WhiteBitMCPClient
@@ -6,6 +8,7 @@ server_script = "claude_desktop_server.py"  # Assumes this file exists and runs 
 
 
 async def use_mcp_client(whitebit_client):
+    """Use the WhiteBit MCP client to interact with the server."""
     async with whitebit_client:
         tools = await whitebit_client.client.list_tools()
         print(f"Connected via Python Stdio, found tools: {tools}")

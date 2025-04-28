@@ -30,7 +30,7 @@ async def test_get_ticker():
         data = json.loads(content.text)
         assert isinstance(data, dict)
         assert "ticker" in data
-        ticker = data["ticker"]['result']
+        ticker = data["ticker"]["result"]
         assert isinstance(ticker, dict)
         assert "last" in ticker
         assert "high" in ticker

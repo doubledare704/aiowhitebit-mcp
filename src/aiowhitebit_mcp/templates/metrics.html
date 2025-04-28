@@ -1,0 +1,24 @@
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Metrics</h5>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Request Count</th>
+                    <th>Success Rate</th>
+                    <th>Avg Duration (ms)</th>
+                    <th>P95 Duration (ms)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {metrics_rows}
+            </tbody>
+        </table>
+        <form action="/reset-metrics" method="post" class="mt-3">
+            <button type="submit" class="btn btn-danger">Reset Metrics</button>
+        </form>
+    </div>
+</div>

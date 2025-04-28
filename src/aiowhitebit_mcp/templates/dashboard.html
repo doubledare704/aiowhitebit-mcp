@@ -1,0 +1,78 @@
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Health Status</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <span class="status-{health_status_class}">{health_status}</span>
+                </p>
+                <a href="/health" class="btn btn-primary">View Details</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Circuit Breakers</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    {circuit_breaker_summary}
+                </p>
+                <a href="/circuit-breakers" class="btn btn-primary">View Details</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Metrics Summary</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="metricsChart"></canvas>
+                <a href="/metrics" class="btn btn-primary mt-3">View Details</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Cache Summary</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    {cache_summary}
+                </p>
+                <a href="/cache" class="btn btn-primary">View Details</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var ctx = document.getElementById('metricsChart').getContext('2d');
+    var chartConfig = {{
+        type: 'bar',
+        data: {{
+            labels: {metrics_labels},
+            datasets: [{{
+                label: 'Request Count',
+                data: {metrics_data},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }}]
+        }},
+        options: {{
+            scales: {{
+                y: {{
+                    beginAtZero: true
+                }}
+            }}
+        }}
+    }};
+    var chart = new Chart(ctx, chartConfig);
+</script>

@@ -1,191 +1,153 @@
 # aiowhitebit-mcp
 
-Message Control Protocol (MCP) server and client implementation for WhiteBit cryptocurrency exchange API. Built on top of [aiowhitebit](https://github.com/doubledare704/aiowhitebit) library and [fastmcp](https://github.com/jlowin/fastmcp).
+Message Control Protocol (MCP) server and client implementation for WhiteBit cryptocurrency exchange API. Built on
+top of [aiowhitebit](https://github.com/doubledare704/aiowhitebit) library and [fastmcp](https://github.com/jlowin/fastmcp).
 
 ## Features
 
-- MCP server for WhiteBit API with public and private endpoints
-- Support for WebSocket API
+- MCP server for WhiteBit API with public endpoints
+- Support for multiple transport protocols (stdio, SSE, WebSocket)
 - Easy-to-use client for interacting with the MCP server
 - Command-line interface for running the server
-- Support for multiple transport protocols (stdio, SSE, WebSocket)
 - Integration with Claude Desktop
+- Real-time market data via WebSocket
+- Comprehensive test coverage and type checking
+- Modern development tools (ruff, pyright, pre-commit)
+- Caching with disk persistence
+- Rate limiting and circuit breaker patterns
 
-## Installation
+## Quick Start
 
 ```bash
+# Install the package
 pip install aiowhitebit-mcp
-```
 
-Or install from source:
-
-```bash
-git clone https://github.com/yourusername/aiowhitebit-mcp.git
-cd aiowhitebit-mcp
-pip install -e .
-```
-
-## Usage
-
-### Running the MCP Server
-
-You can run the MCP server using the command-line interface:
-
-```bash
-# Run with stdio transport (for Claude Desktop)
+# Run the server (stdio transport for Claude Desktop)
 aiowhitebit-mcp --transport stdio
 
-# Run with SSE transport (for web clients)
+# Or run with SSE transport
 aiowhitebit-mcp --transport sse --host 127.0.0.1 --port 8000
-
-# Run with WebSocket transport
-aiowhitebit-mcp --transport ws --host 127.0.0.1 --port 8000
 ```
 
-For private API endpoints, you need to provide your WhiteBit API credentials:
+## Basic Usage
 
-```bash
-# Using environment variables
-export WHITEBIT_API_KEY="your_api_key"
-export WHITEBIT_API_SECRET="your_api_secret"
-aiowhitebit-mcp
-
-# Or using command-line arguments
-aiowhitebit-mcp --api-key "your_api_key" --api-secret "your_api_secret"
-```
-
-### Using the MCP Server with Claude Desktop
-
-1. Install the MCP server in Claude Desktop:
-
-```bash
-fastmcp install examples/run_server.py --name "WhiteBit API"
-```
-
-2. Open Claude Desktop and select the "WhiteBit API" MCP server from the list of available servers.
-
-3. You can now interact with the WhiteBit API through Claude.
-
-### Using the Client
+### Client with Network Transport
 
 ```python
 import asyncio
+import os
 from aiowhitebit_mcp.client import WhiteBitMCPClient
 
 async def main():
-    # Connect to the MCP server
-    async with WhiteBitMCPClient(server_url="http://localhost:8000/mcp") as client:
-        # Get server time
-        server_time = await client.get_server_time()
-        print("Server time:", server_time)
+    # Set the server URL (or use environment variable)
+    server_url = "http://localhost:8000/sse"
+    os.environ["WHITEBIT_MCP_URL"] = server_url
+    
+    async with WhiteBitMCPClient() as client:
+        # Get market info
+        btc_usdt = await client.get_market_resource("BTC_USDT")
+        print("BTC/USDT Market Info:", btc_usdt)
 
-        # Get market info for BTC_USDT
-        btc_usdt_info = await client.get_market_resource("BTC_USDT")
-        print("BTC_USDT market info:", btc_usdt_info)
+        # Get real-time price via WebSocket
+        price = await client.get_last_price("BTC_USDT")
+        print("Current BTC/USDT price:", price)
 
-        # Get recent trades for BTC_USDT
-        recent_trades = await client.get_recent_trades("BTC_USDT", limit=5)
-        print("Recent BTC_USDT trades:", recent_trades)
+        # Get order book
+        orderbook = await client.get_orderbook("BTC_USDT")
+        print("Order book:", orderbook)
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## Available Tools and Resources
+## Server Configuration
 
-### Public API Tools
+```python
+from aiowhitebit_mcp.server import create_server
+import asyncio
 
-- `get_market_info`: Get information about all available markets
-- `get_market_activity`: Get activity information for all markets
-- `get_server_time`: Get current server time
-- `get_server_status`: Get current server status
-- `get_asset_status_list`: Get status of all assets
-- `get_orderbook`: Get orderbook for a specific market
-- `get_recent_trades`: Get recent trades for a specific market
-- `get_fee`: Get trading fee for a specific market
+# Create the server with custom configuration
+server = create_server(
+    name="WhiteBit API"
+)
 
-### Private API Tools (requires API credentials)
+# Run the server with desired transport
+if __name__ == "__main__":
+    asyncio.run(
+        server.run(
+            transport="stdio",  # or "sse"
+            host="127.0.0.1",   # for network transports
+            port=8000           # for network transports
+        )
+    )
+```
 
-- `get_trading_balance`: Get trading balance for all assets
-- `create_limit_order`: Create a limit order
-- `create_stop_limit_order`: Create a stop limit order
-- `active_orders`: Get active orders
-- `cancel_order`: Cancel an order
+## Available Tools
 
-### WebSocket Tools
+### Public API
+- `get_server_time()`: Get current server time
+- `get_market_info()`: Get all markets information
+- `get_orderbook(market: str)`: Get order book
+- `get_recent_trades(market: str, limit: int = 100)`: Get recent trades
+- `get_ticker(market: str)`: Get ticker information
+- `get_fee(market: str)`: Get trading fees
+- `get_server_status()`: Get server status
+- `get_asset_status_list()`: Get status of all assets
 
-- `get_last_price`: Get last price for a specific market using WebSocket
-- `get_market_depth`: Get market depth for a specific market using WebSocket
+### WebSocket API
+- `get_last_price(market: str)`: Get real-time price
+- `get_market_depth(market: str)`: Get real-time order book
 
 ### Resources
+- `whitebit://markets`: Get all markets information
+- `whitebit://markets/{market}`: Get specific market information
+- `whitebit://assets`: Get all assets information
+- `whitebit://assets/{asset}`: Get specific asset information
 
-- `whitebit://markets`: Get information about all available markets
-- `whitebit://markets/{market}`: Get information about a specific market
-- `whitebit://assets`: Get status of all assets
-- `whitebit://assets/{asset}`: Get status of a specific asset
+## Command-line Interface
+
+```bash
+# Show help
+aiowhitebit-mcp --help
+
+# Run with stdio transport (for Claude Desktop)
+aiowhitebit-mcp --transport stdio
+
+# Run with SSE transport
+aiowhitebit-mcp --transport sse --host localhost --port 8000
+```
 
 ## Development
 
-### Setup Development Environment
-
-To set up a development environment, clone the repository and install the development dependencies:
-
 ```bash
+# Clone the repository
 git clone https://github.com/yourusername/aiowhitebit-mcp.git
 cd aiowhitebit-mcp
 
-# Option 1: Using requirements-dev.txt
-pip install -r requirements-dev.txt
-pip install -e .
-
-# Option 2: Using pip extras
+# Install development dependencies
 pip install -e ".[dev]"
-```
 
-### Running Tests
+# Install pre-commit hooks
+pre-commit install
 
-To run the tests:
+# Run tests
+pytest
 
-```bash
-python -m pytest
-```
-
-To run tests with coverage:
-
-```bash
-python -m pytest --cov=aiowhitebit_mcp
-```
-
-### Code Formatting
-
-This project uses Black for code formatting and isort for import sorting:
-
-```bash
-# Format code
-black .
-
-# Sort imports
-isort .
+# Run type checking
+pyright src/aiowhitebit_mcp
 
 # Run linting
-flake8 .
+ruff check .
 ```
 
-### Type Checking
+## Examples
 
-To run type checking with mypy:
+Check the `examples/` directory for more usage examples:
 
-```bash
-mypy src/aiowhitebit_mcp
-```
-
-### Pre-commit Hooks
-
-You can install pre-commit hooks to automatically format and check your code before committing:
-
-```bash
-pre-commit install
-```
+- `claude_desktop_server.py`: Run the server with stdio transport for Claude Desktop
+- `claude_desktop_client.py`: Client for connecting to a stdio server
+- `sse_server.py`: Run the server with SSE transport
+- `sse_client.py`: Client for connecting to an SSE server
 
 ## License
 

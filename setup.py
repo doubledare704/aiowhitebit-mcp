@@ -1,3 +1,10 @@
+"""Setup script for aiowhitebit-mcp package.
+
+This module contains the setup configuration for installing the aiowhitebit-mcp
+package, which provides an MCP server and client for the WhiteBit cryptocurrency
+exchange API.
+"""
+
 from setuptools import find_packages, setup
 
 # Define development requirements
@@ -12,7 +19,7 @@ development_requires = [
 
 setup(
     name="aiowhitebit-mcp",
-    version="0.1.0",
+    version="0.2.2",
     description="MCP server and client for WhiteBit cryptocurrency exchange API",
     author="Your Name",
     author_email="your.email@example.com",
@@ -20,8 +27,8 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "aiowhitebit==0.1.5",
-        "fastmcp==2.1.2",
+        "aiowhitebit==0.2.0",
+        "fastmcp==2.2.5",
     ],
     entry_points={
         "console_scripts": [
@@ -33,11 +40,10 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     extras_require={
         "dev": development_requires,
     },

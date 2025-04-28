@@ -1,6 +1,7 @@
 # aiowhitebit-mcp
 
-Message Control Protocol (MCP) server and client implementation for WhiteBit cryptocurrency exchange API. Built on top of [aiowhitebit](https://github.com/doubledare704/aiowhitebit) library and [fastmcp](https://github.com/jlowin/fastmcp).
+Message Control Protocol (MCP) server and client implementation for WhiteBit cryptocurrency exchange API. Built on
+top of [aiowhitebit](https://github.com/doubledare704/aiowhitebit) library and [fastmcp](https://github.com/jlowin/fastmcp).
 
 ## Features
 
@@ -12,6 +13,8 @@ Message Control Protocol (MCP) server and client implementation for WhiteBit cry
 - Real-time market data via WebSocket
 - Comprehensive test coverage and type checking
 - Modern development tools (ruff, pyright, pre-commit)
+- Caching with disk persistence
+- Rate limiting and circuit breaker patterns
 
 ## Quick Start
 
@@ -22,17 +25,24 @@ pip install aiowhitebit-mcp
 # Run the server (stdio transport for Claude Desktop)
 aiowhitebit-mcp --transport stdio
 
-# Or run with WebSocket transport
-aiowhitebit-mcp --transport ws --host 127.0.0.1 --port 8000
+# Or run with SSE transport
+aiowhitebit-mcp --transport sse --host 127.0.0.1 --port 8000
 ```
 
 ## Basic Usage
 
+### Client with Network Transport
+
 ```python
 import asyncio
+import os
 from aiowhitebit_mcp.client import WhiteBitMCPClient
 
 async def main():
+    # Set the server URL (or use environment variable)
+    server_url = "http://localhost:8000/sse"
+    os.environ["WHITEBIT_MCP_URL"] = server_url
+    
     async with WhiteBitMCPClient() as client:
         # Get market info
         btc_usdt = await client.get_market_resource("BTC_USDT")
@@ -54,10 +64,22 @@ if __name__ == "__main__":
 
 ```python
 from aiowhitebit_mcp.server import create_server
+import asyncio
 
+# Create the server with custom configuration
 server = create_server(
     name="WhiteBit API"
 )
+
+# Run the server with desired transport
+if __name__ == "__main__":
+    asyncio.run(
+        server.run(
+            transport="stdio",  # or "sse"
+            host="127.0.0.1",   # for network transports
+            port=8000           # for network transports
+        )
+    )
 ```
 
 ## Available Tools
@@ -69,10 +91,31 @@ server = create_server(
 - `get_recent_trades(market: str, limit: int = 100)`: Get recent trades
 - `get_ticker(market: str)`: Get ticker information
 - `get_fee(market: str)`: Get trading fees
+- `get_server_status()`: Get server status
+- `get_asset_status_list()`: Get status of all assets
 
 ### WebSocket API
 - `get_last_price(market: str)`: Get real-time price
 - `get_market_depth(market: str)`: Get real-time order book
+
+### Resources
+- `whitebit://markets`: Get all markets information
+- `whitebit://markets/{market}`: Get specific market information
+- `whitebit://assets`: Get all assets information
+- `whitebit://assets/{asset}`: Get specific asset information
+
+## Command-line Interface
+
+```bash
+# Show help
+aiowhitebit-mcp --help
+
+# Run with stdio transport (for Claude Desktop)
+aiowhitebit-mcp --transport stdio
+
+# Run with SSE transport
+aiowhitebit-mcp --transport sse --host localhost --port 8000
+```
 
 ## Development
 
@@ -96,6 +139,15 @@ pyright src/aiowhitebit_mcp
 # Run linting
 ruff check .
 ```
+
+## Examples
+
+Check the `examples/` directory for more usage examples:
+
+- `claude_desktop_server.py`: Run the server with stdio transport for Claude Desktop
+- `claude_desktop_client.py`: Client for connecting to a stdio server
+- `sse_server.py`: Run the server with SSE transport
+- `sse_client.py`: Client for connecting to an SSE server
 
 ## License
 

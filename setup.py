@@ -19,7 +19,7 @@ development_requires = [
 
 setup(
     name="aiowhitebit-mcp",
-    version="0.2.1",
+    version="0.2.2",
     description="MCP server and client for WhiteBit cryptocurrency exchange API",
     author="Your Name",
     author_email="your.email@example.com",

@@ -8,7 +8,7 @@ exchange API.
 from setuptools import find_packages, setup
 
 # Read the long description from README.md
-with open("README.md", "r", encoding="utf-8") as fh:
+with open("README.md", encoding="utf-8") as fh:
     long_description = fh.read()
 
 # Define development requirements

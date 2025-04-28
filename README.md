@@ -42,7 +42,7 @@ async def main():
     # Set the server URL (or use environment variable)
     server_url = "http://localhost:8000/sse"
     os.environ["WHITEBIT_MCP_URL"] = server_url
-    
+
     async with WhiteBitMCPClient() as client:
         # Get market info
         btc_usdt = await client.get_market_resource("BTC_USDT")

@@ -55,14 +55,17 @@ def optimized(ttl_seconds: int = 60, rate_limit_name: str = "public"):
 def convert_to_klines(data: list[dict[str, int | str]]) -> list[Kline]:
     """Convert raw data to Kline objects."""
     return [
-        cast("Kline", {
-            "timestamp": int(item["timestamp"]),
-            "open": float(item["open"]),
-            "high": float(item["high"]),
-            "low": float(item["low"]),
-            "close": float(item["close"]),
-            "volume": float(item["volume"])
-        })
+        cast(
+            "Kline",
+            {
+                "timestamp": int(item["timestamp"]),
+                "open": float(item["open"]),
+                "high": float(item["high"]),
+                "low": float(item["low"]),
+                "close": float(item["close"]),
+                "volume": float(item["volume"]),
+            },
+        )
         for item in data
     ]
 
@@ -203,8 +206,9 @@ class PublicV4ClientProxy:
         except Exception as e:
             logger.error(f"Error in get_orderbook for {market}: {e}")
             logger.debug(traceback.format_exc())
-            return Orderbook(ticker_id=market, asks=[], bids=[],
-                             timestamp=1000000000)  # Return a mock object for testing
+            return Orderbook(
+                ticker_id=market, asks=[], bids=[], timestamp=1000000000
+            )  # Return a mock object for testing
 
     @optimized(ttl_seconds=10, rate_limit_name="get_recent_trades")  # Recent trades change frequently
     @circuit_breaker(name="public_v4_get_recent_trades", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)

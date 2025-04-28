@@ -9,12 +9,57 @@ import logging
 import os
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict, is_dataclass
 from functools import wraps
 from typing import Any
 
 # Set up logging
 logger = logging.getLogger(__name__)
+
+
+class CustomJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder that handles non-serializable objects."""
+    
+    def default(self, obj):
+        # Handle dataclasses
+        if is_dataclass(obj):
+            return asdict(obj)
+        
+        # Handle objects with __dict__ attribute
+        if hasattr(obj, "__dict__"):
+            return obj.__dict__
+            
+        # Handle objects with to_dict or as_dict methods
+        if hasattr(obj, "to_dict"):
+            return obj.to_dict()
+        if hasattr(obj, "as_dict"):
+            return obj.as_dict()
+            
+        # Handle objects with __str__ method as a last resort
+        try:
+            return str(obj)
+        except:
+            return f"<Non-serializable object of type {type(obj).__name__}>"
+
+
+def _serialize_for_cache(obj: Any) -> Any:
+    """Serialize an object for caching.
+    
+    Attempts to convert complex objects to JSON-serializable types.
+    
+    Args:
+        obj: The object to serialize
+        
+    Returns:
+        A JSON-serializable representation of the object
+    """
+    try:
+        # Test if object is already JSON serializable
+        json.dumps(obj)
+        return obj
+    except (TypeError, OverflowError):
+        # If not, use the custom encoder
+        return json.loads(json.dumps(obj, cls=CustomJSONEncoder))
 
 
 @dataclass
@@ -99,7 +144,9 @@ class Cache:
             value: The value to set
             ttl: The time-to-live for the entry in seconds
         """
-        self.entries[key] = CacheEntry(value=value, timestamp=time.time(), ttl=ttl)
+        # Serialize the value if needed for persistence
+        serializable_value = _serialize_for_cache(value) if self.persist else value
+        self.entries[key] = CacheEntry(value=serializable_value, timestamp=time.time(), ttl=ttl)
 
         # Persist the cache to disk
         if self.persist:
@@ -134,12 +181,16 @@ class Cache:
             for key, entry in self.entries.items():
                 # Only persist valid entries
                 if entry.is_valid():
-                    entries_dict[key] = {"value": entry.value, "timestamp": entry.timestamp, "ttl": entry.ttl}
+                    entries_dict[key] = {
+                        "value": entry.value,
+                        "timestamp": entry.timestamp,
+                        "ttl": entry.ttl
+                    }
 
-            # Write the entries to disk
+            # Write the entries to disk using the custom encoder
             cache_file = os.path.join(self.persist_dir, f"{self.name}.json")
             with open(cache_file, "w") as f:
-                json.dump(entries_dict, f)
+                json.dump(entries_dict, f, cls=CustomJSONEncoder)
         except Exception as e:
             logger.error(f"Error persisting cache to disk: {e}")
 
@@ -148,18 +199,34 @@ class Cache:
         try:
             cache_file = os.path.join(self.persist_dir, f"{self.name}.json")
             if os.path.exists(cache_file):
-                with open(cache_file) as f:
-                    entries_dict = json.load(f)
+                try:
+                    with open(cache_file) as f:
+                        entries_dict = json.load(f)
 
-                # Create cache entries from the loaded data
-                for key, entry_dict in entries_dict.items():
-                    entry = CacheEntry(
-                        value=entry_dict["value"], timestamp=entry_dict["timestamp"], ttl=entry_dict["ttl"]
-                    )
+                    # Create cache entries from the loaded data
+                    for key, entry_dict in entries_dict.items():
+                        entry = CacheEntry(
+                            value=entry_dict["value"], timestamp=entry_dict["timestamp"], ttl=entry_dict["ttl"]
+                        )
 
-                    # Only add valid entries
-                    if entry.is_valid():
-                        self.entries[key] = entry
+                        # Only add valid entries
+                        if entry.is_valid():
+                            self.entries[key] = entry
+                except json.JSONDecodeError as json_err:
+                    logger.error(f"Invalid JSON in cache file {cache_file}: {json_err}")
+                    logger.info(f"Removing corrupted cache file: {cache_file}")
+                    # Backup the corrupted file for debugging
+                    backup_file = f"{cache_file}.corrupted"
+                    try:
+                        os.rename(cache_file, backup_file)
+                        logger.info(f"Corrupted cache file backed up to {backup_file}")
+                    except OSError:
+                        # If rename fails, try to delete the file
+                        try:
+                            os.remove(cache_file)
+                            logger.info(f"Corrupted cache file deleted: {cache_file}")
+                        except OSError as del_err:
+                            logger.error(f"Failed to remove corrupted cache file: {del_err}")
         except Exception as e:
             logger.error(f"Error loading cache from disk: {e}")
 

@@ -250,6 +250,8 @@ class PublicV4ClientProxy:
             result = await self._original_client.get_fee()
             if market in result:
                 result = result[market]
+            else:
+                raise ValueError(f"Market {market} not found in fee data")
             fee_data = result.model_dump()
             logger.debug(f"get_fee result: {fee_data}")
             return cast("Fee", result)

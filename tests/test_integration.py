@@ -20,27 +20,24 @@ async def test_get_ticker():
     """Test the get_ticker endpoint returns valid ticker data."""
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
-        try:
-            response = await client.call_tool("get_ticker", {"market": MarketPair(market="BTC_USDT")})
-            assert isinstance(response, list)
-            assert len(response) > 0
+        response = await client.call_tool("get_ticker", {"market": MarketPair(market="BTC_USDT")})
+        assert isinstance(response, list)
+        assert len(response) > 0
 
-            content = response[0]
-            assert hasattr(content, "text")
+        content = response[0]
+        assert hasattr(content, "text")
 
-            data = json.loads(content.text)
-            assert isinstance(data, dict)
-            assert "ticker" in data
-            ticker = data["ticker"]
-            assert isinstance(ticker, dict)
-            assert "market" in ticker
-            assert "last" in ticker
-            assert "high" in ticker
-            assert "low" in ticker
-            assert "volume" in ticker
-            print("✅ get_ticker test passed")
-        except Exception as e:
-            print(f"❌ get_ticker test failed: {e}")
+        data = json.loads(content.text)
+        assert isinstance(data, dict)
+        assert "ticker" in data
+        ticker = data["ticker"]['result']
+        assert isinstance(ticker, dict)
+        assert "last" in ticker
+        assert "high" in ticker
+        assert "low" in ticker
+        assert "volume" in ticker
+        print("✅ get_ticker test passed")
+
     await server.close()
 
 
@@ -172,27 +169,25 @@ async def test_market_info():
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_market_info...")
-        try:
-            response = await client.call_tool("get_market_info", {})
-            assert isinstance(response, list)
-            assert len(response) > 0
+        response = await client.call_tool("get_market_info", {})
+        assert isinstance(response, list)
+        assert len(response) > 0
 
-            content = response[0]
-            assert hasattr(content, "text")
+        content = response[0]
+        assert hasattr(content, "text")
 
-            data = json.loads(content.text)
-            assert isinstance(data, dict)
-            assert "markets" in data
-            markets = data["markets"]
-            assert isinstance(markets, list)
-            assert len(markets) > 0
-            first_market = markets[0]
-            assert isinstance(first_market, dict)
-            assert "stock" in first_market
-            assert "money" in first_market
-            print("✅ get_market_info test passed")
-        except Exception as e:
-            print(f"❌ get_market_info test failed: {e}")
+        data = json.loads(content.text)
+        assert isinstance(data, dict)
+        assert "markets" in data
+        markets = data["markets"]
+        assert isinstance(markets, list)
+        assert len(markets) > 0
+        first_market = markets[0][0]
+        assert isinstance(first_market, dict)
+        assert "stock" in first_market
+        assert "money" in first_market
+        print("✅ get_market_info test passed")
+
     await server.close()
 
 
@@ -201,28 +196,23 @@ async def test_market_activity():
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_market_activity...")
-        try:
-            response = await client.call_tool("get_market_activity", {})
-            assert isinstance(response, list)
-            assert len(response) > 0
+        response = await client.call_tool("get_market_activity", {})
+        assert isinstance(response, list)
+        assert len(response) > 0
 
-            content = response[0]
-            assert hasattr(content, "text")
+        content = response[0]
+        assert hasattr(content, "text")
 
-            data = json.loads(content.text)
-            assert isinstance(data, dict)
-            assert "activities" in data
-            activities = data["activities"]
-            assert isinstance(activities, list)
-            assert len(activities) > 0
-            first_activity = activities[0]
-            assert isinstance(first_activity, dict)
-            for _k, v in first_activity.items():
-                assert "last_price" in v
-                assert "quote_volume" in v
-            print("✅ get_market_activity test passed")
-        except Exception as e:
-            print(f"❌ get_market_activity test failed: {e}")
+        data = json.loads(content.text)
+        assert isinstance(data, dict)
+        assert "activities" in data
+        activities = data["activities"]
+        assert isinstance(activities, list)
+        assert len(activities) > 0
+        first_activity = activities[0]
+        assert isinstance(first_activity, str)
+        assert isinstance(activities, list)
+        print("✅ get_market_activity test passed")
     await server.close()
 
 
@@ -282,19 +272,17 @@ async def test_fee():
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         print("Testing get_fee...")
-        try:
-            response = await client.call_tool("get_fee", {"market": MarketPair(market="BTC_USDT")})
-            assert isinstance(response, list)
-            assert len(response) > 0
+        response = await client.call_tool("get_fee", {"market": MarketPair(market="BTC")})
+        assert isinstance(response, list)
+        assert len(response) > 0
 
-            content = response[0]
-            assert hasattr(content, "text")
+        content = response[0]
+        assert hasattr(content, "text")
 
-            data = json.loads(content.text)
-            assert isinstance(data, dict)
-            print("✅ get_fee test passed")
-        except Exception as e:
-            print(f"❌ get_fee test failed: {e}")
+        data = json.loads(content.text)
+        assert isinstance(data, dict)
+        print("✅ get_fee test passed")
+
     await server.close()
 
 

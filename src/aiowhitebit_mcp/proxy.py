@@ -6,7 +6,7 @@ from collections.abc import Callable
 from typing import cast
 
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
-from aiowhitebit.models import Kline, MarketSingleResponse, Tickers
+from aiowhitebit.models.public.v1 import Kline, MarketSingleResponse, Tickers
 from aiowhitebit.models.public.v4 import (
     AssetStatus,
     Fee,
@@ -55,14 +55,17 @@ def optimized(ttl_seconds: int = 60, rate_limit_name: str = "public"):
 def convert_to_klines(data: list[dict[str, int | str]]) -> list[Kline]:
     """Convert raw data to Kline objects."""
     return [
-        cast("Kline", {
-            "timestamp": int(item["timestamp"]),
-            "open": float(item["open"]),
-            "high": float(item["high"]),
-            "low": float(item["low"]),
-            "close": float(item["close"]),
-            "volume": float(item["volume"])
-        })
+        cast(
+            "Kline",
+            {
+                "timestamp": int(item["timestamp"]),
+                "open": float(item["open"]),
+                "high": float(item["high"]),
+                "low": float(item["low"]),
+                "close": float(item["close"]),
+                "volume": float(item["volume"]),
+            },
+        )
         for item in data
     ]
 
@@ -104,7 +107,7 @@ class PublicV4ClientProxy:
                 time_data = result.model_dump()
                 logger.debug(f"get_server_time result: {time_data}")
             except AttributeError:
-                time_data = result.dict()
+                time_data = result.model_dump()
                 logger.debug(f"get_server_time result (using dict): {time_data}")
             return result
         except Exception as e:
@@ -195,7 +198,7 @@ class PublicV4ClientProxy:
                 bids_count = len(orderbook_data.get("bids", []))
                 logger.debug(f"get_orderbook result: {asks_count} asks, {bids_count} bids")
             except AttributeError:
-                orderbook_data = result.dict()
+                orderbook_data = result.model_dump()
                 asks_count = len(orderbook_data.get("asks", []))
                 bids_count = len(orderbook_data.get("bids", []))
                 logger.debug(f"get_orderbook result (using dict): {asks_count} asks, {bids_count} bids")
@@ -203,8 +206,9 @@ class PublicV4ClientProxy:
         except Exception as e:
             logger.error(f"Error in get_orderbook for {market}: {e}")
             logger.debug(traceback.format_exc())
-            return Orderbook(ticker_id=market, asks=[], bids=[],
-                             timestamp=1000000000)  # Return a mock object for testing
+            return Orderbook(
+                ticker_id=market, asks=[], bids=[], timestamp=1000000000
+            )  # Return a mock object for testing
 
     @optimized(ttl_seconds=10, rate_limit_name="get_recent_trades")  # Recent trades change frequently
     @circuit_breaker(name="public_v4_get_recent_trades", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
@@ -281,57 +285,6 @@ class PublicV4ClientProxy:
             logger.debug(traceback.format_exc())
             return cast("list[AssetStatus]", [{"name": "BTC", "status": "active"}])
 
-    @optimized(ttl_seconds=60, rate_limit_name="public")  # Kline data changes frequently but not too much
-    @circuit_breaker(name="public_v4_get_kline", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
-    @rate_limited("public")
-    async def get_kline(self, market: str, interval: str, start_time: int, end_time: int) -> list[Kline]:
-        """Get kline (candlestick) data for a specific market.
-
-        Args:
-            market: Market pair (e.g., 'BTC_USDT')
-            interval: Kline interval (e.g., '1m', '1h', '1d')
-            start_time: Start time in seconds
-            end_time: End time in seconds
-
-        Returns:
-            List[Kline]: List of kline data objects
-
-        Raises:
-            Exception: If there is an error communicating with the WhiteBit API
-        """
-        try:
-            logger.debug(
-                f"Calling get_kline for {market} with interval={interval}, start_time={start_time}, end_time={end_time}"
-            )
-            result = await self._original_client.get_kline(market, interval, start_time, end_time)
-            logger.debug(f"get_kline result: {len(result)} klines")
-            return result
-        except Exception as e:
-            logger.error(f"Error in get_kline for {market}: {e}")
-            logger.debug(traceback.format_exc())
-            # Return a mock list for testing
-            data = convert_to_klines(
-                [
-                    {
-                        "timestamp": start_time,
-                        "open": "50000",
-                        "close": "51000",
-                        "high": "52000",
-                        "low": "49000",
-                        "volume": "100",
-                    },
-                    {
-                        "timestamp": end_time,
-                        "open": "51000",
-                        "close": "52000",
-                        "high": "53000",
-                        "low": "50000",
-                        "volume": "200",
-                    },
-                ]
-            )
-            return data
-
     async def close(self) -> None:
         """Close the client and release resources.
 
@@ -380,13 +333,12 @@ class PublicV1ClientProxy:
         try:
             logger.debug(f"Calling get_ticker for {market}")
             result = await self._original_client.get_single_market(market)
-            logger.debug(f"get_ticker result: {result.dict() if hasattr(result, 'dict') else result}")
+            logger.debug(f"get_ticker result: {result.model_dump() if hasattr(result, 'dict') else result}")
             return result
         except Exception as e:
             logger.error(f"Error in get_ticker for {market}: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock object for testing
-            return MarketSingleResponse(market=market, last="50000", high="51000", low="49000", volume="100")
+            raise e
 
     @optimized(ttl_seconds=30, rate_limit_name="public")  # Tickers data changes frequently
     async def get_tickers(self) -> Tickers:
@@ -406,8 +358,7 @@ class PublicV1ClientProxy:
         except Exception as e:
             logger.error(f"Error in get_tickers: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock list for testing
-            return Tickers(result=[])
+            raise e
 
     async def close(self) -> None:
         """Close the client and release resources.
@@ -453,9 +404,15 @@ class PublicV2ClientProxy:
         """
         try:
             logger.debug("Calling get_symbols")
-            result = await self._original_client.get_symbols()
-            logger.debug(f"get_symbols result: {len(result)} symbols")
-            return result
+            # Use the correct method name
+            result = await self._original_client.get_tickers()
+            # Since TickersV2 is only available during type checking, use a more generic approach
+            symbols = []
+            for ticker in result.result:
+                if hasattr(ticker, "tradingPairs"):
+                    symbols.append(ticker.tradingPairs)
+            logger.debug(f"get_symbols result: {len(symbols)} symbols")
+            return symbols
         except Exception as e:
             logger.error(f"Error in get_symbols: {e}")
             logger.debug(traceback.format_exc())
@@ -474,18 +431,15 @@ class PublicV2ClientProxy:
         """
         try:
             logger.debug("Calling get_assets")
-            result = await self._original_client.get_assets()
+            # Use the correct method name
+            resp = await self._original_client.get_asset_status_list()
+            result = resp.result
             logger.debug(f"get_assets result: {len(result)} assets")
             return result
         except Exception as e:
             logger.error(f"Error in get_assets: {e}")
             logger.debug(traceback.format_exc())
-            # Return a mock dictionary for testing
-            return {
-                "BTC": {"name": "Bitcoin", "unified_cryptoasset_id": 1, "can_withdraw": True, "can_deposit": True},
-                "ETH": {"name": "Ethereum", "unified_cryptoasset_id": 1027, "can_withdraw": True, "can_deposit": True},
-                "USDT": {"name": "Tether", "unified_cryptoasset_id": 825, "can_withdraw": True, "can_deposit": True},
-            }
+            raise e
 
     async def close(self) -> None:
         """Close the client and release resources.

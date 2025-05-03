@@ -26,7 +26,7 @@ async def test_client_initialization():
     """Test client initialization with URL."""
     server = create_server(name="WhiteBit MCP Test")
     try:
-        client = WhiteBitMCPClient(server.mcp)
+        client = WhiteBitMCPClient(server.mcp)  # type: ignore
         assert client.server_url == server.mcp
     finally:
         await server.close()

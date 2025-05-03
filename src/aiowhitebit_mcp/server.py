@@ -268,24 +268,6 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
             result = await self.public_v4.get_asset_status_list()
             return {"assets": list(result)}  # Convert AssetStatus to a regular list and wrap in dict
 
-        @self.mcp.tool()
-        async def get_kline(market: MarketPair, interval: str, start_time: int, end_time: int) -> dict:
-            """Get kline (candlestick) data for a specific market.
-
-            Args:
-                market: Market pair (e.g., 'BTC_USDT')
-                interval: Kline interval (e.g., '1m', '1h', '1d')
-                start_time: Start time in seconds
-                end_time: End time in seconds
-            """
-            logger.debug(
-                f"Tool call: get_kline for {market.market} with "
-                f"interval={interval}, start_time={start_time}, end_time={end_time}"
-            )
-            result = await self.public_v4.get_kline(market.market, interval, start_time, end_time)
-            logger.debug(f"get_kline result: {len(result)} klines")
-            return {"klines": list(result)}  # Convert Kline to a regular list and wrap in dict
-
         logger.debug("Public v4 API tools registered successfully")
 
     def _register_public_tools(self):
@@ -299,8 +281,6 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         self._register_public_v2_tools()
         self._register_public_v4_tools()
         logger.debug("All public API tools registered successfully")
-
-
 
     def _register_websocket_tools(self):
         """Register WebSocket tools.
@@ -333,7 +313,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
                 return {"status": "not_connected"}
 
             logger.debug("Disconnecting from WebSocket")
-            await self.ws_client.disconnect()
+            await self.ws_client.disconnect()  # type: ignore
             logger.debug("Disconnected from WebSocket")
 
             return {"status": "disconnected"}
@@ -374,7 +354,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
         # Register monitoring tools
         @self.mcp.tool()
-        async def health(self) -> dict[str, Any]:
+        async def health() -> dict[str, Any]:
             """Get the health status of the WhiteBit MCP server."""
             result = await monitoring_server.health_check.run_checks()
             return result
@@ -443,7 +423,6 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
                     break
             return {"market": result}
 
-
     async def close(self):
         """Close the server and release resources.
 
@@ -465,7 +444,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         # Close websocket client if it exists
         if self.ws_client:
             logger.debug("Closing websocket client")
-            await self.ws_client.close()
+            await self.ws_client.close()  # type: ignore
             logger.debug("Websocket client closed")
 
         # Stop web interface if it was started
@@ -490,23 +469,23 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
             port: Port to bind to (for sse transport)
         """
         logger.info(f"Starting {self.name} server with {transport} transport")
-        
+
         # FastMCP only supports "stdio" and "sse" transports
         if transport not in ["stdio", "sse"]:
             raise ValueError(f"Unsupported transport: {transport}. Use 'stdio' or 'sse'.")
-        
+
         # Prepare transport kwargs
         transport_kwargs = {}
-        
+
         # For SSE transport, we need to configure the host and port
         if transport == "sse":
             if host is not None:
                 transport_kwargs["host"] = host
             if port is not None:
                 transport_kwargs["port"] = port
-            
+
             logger.info(f"Binding to {transport_kwargs.get('host', '127.0.0.1')}:{transport_kwargs.get('port', 8000)}")
-        
+
         # Run the server asynchronously with the specified transport
         await self.mcp.run_async(transport=transport, **transport_kwargs)
 

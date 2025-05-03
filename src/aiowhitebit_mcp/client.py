@@ -3,6 +3,7 @@
 import os
 
 from fastmcp.client import Client
+from mcp.types import BlobResourceContents, EmbeddedResource, ImageContent, TextContent, TextResourceContents
 
 
 class WhiteBitMCPClient:
@@ -32,30 +33,47 @@ class WhiteBitMCPClient:
         """Async context manager exit."""
         await self.client.__aexit__(exc_type, exc_val, exc_tb)
 
+    def _extract_text(self, response: list[TextContent | ImageContent | EmbeddedResource]) -> str:
+        """Extract text from response content.
+
+        Args:
+            response: Response from MCP server
+
+        Returns:
+            Extracted text content
+        """
+        if not response:
+            return ""
+
+        content = response[0]
+        if isinstance(content, TextContent):
+            return content.text
+        return str(content)
+
     async def get_market_info(self) -> str:
         """Get information about all available markets."""
         result = await self.client.call_tool("get_market_info", {})
-        return result[0].text
+        return self._extract_text(result)
 
     async def get_market_activity(self) -> str:
         """Get activity information for all markets (last price, volume, etc.)."""
         result = await self.client.call_tool("get_market_activity", {})
-        return result[0].text
+        return self._extract_text(result)
 
     async def get_server_time(self) -> str:
         """Get current server time."""
         result = await self.client.call_tool("get_server_time", {})
-        return result[0].text
+        return self._extract_text(result)
 
     async def get_server_status(self) -> str:
         """Get current server status."""
         result = await self.client.call_tool("get_server_status", {})
-        return result[0].text
+        return self._extract_text(result)
 
     async def get_asset_status_list(self) -> str:
         """Get status of all assets."""
         result = await self.client.call_tool("get_asset_status_list", {})
-        return result[0].text
+        return self._extract_text(result)
 
     async def get_orderbook(self, market: str, limit: int = 100, level: int = 0) -> str:
         """Get orderbook for a specific market.
@@ -68,7 +86,7 @@ class WhiteBitMCPClient:
         result = await self.client.call_tool(
             "get_orderbook", {"market": {"market": market}, "limit": limit, "level": level}
         )
-        return result[0].text
+        return self._extract_text(result)
 
     async def get_recent_trades(self, market: str, limit: int = 100) -> str:
         """Get recent trades for a specific market.
@@ -78,7 +96,7 @@ class WhiteBitMCPClient:
             limit: Number of trades to return (default: 100)
         """
         result = await self.client.call_tool("get_recent_trades", {"market": {"market": market}, "limit": limit})
-        return result[0].text
+        return self._extract_text(result)
 
     async def get_fee(self, market: str) -> str:
         """Get trading fee for a specific market.
@@ -87,42 +105,59 @@ class WhiteBitMCPClient:
             market: Market pair (e.g., 'BTC_USDT')
         """
         result = await self.client.call_tool("get_fee", {"market": {"market": market}})
-        return result[0].text
+        return self._extract_text(result)
 
-    async def get_last_price(self, market: str) -> dict:
+    async def get_last_price(self, market: str) -> str:
         """Get last price for a specific market using WebSocket.
 
         Args:
             market: Market pair (e.g., 'BTC_USDT')
         """
         result = await self.client.call_tool("get_last_price", {"market": {"market": market}})
-        return result.content[0].text
+        return self._extract_text(result)
 
-    async def get_market_depth(self, market: str) -> dict:
+    async def get_market_depth(self, market: str) -> str:
         """Get market depth for a specific market using WebSocket.
 
         Args:
             market: Market pair (e.g., 'BTC_USDT')
         """
         result = await self.client.call_tool("get_market_depth", {"market": {"market": market}})
-        return result.content[0].text
+        return self._extract_text(result)
+
+    def _extract_resource_text(self, response: list[TextResourceContents | BlobResourceContents]) -> str:
+        """Extract text from resource response.
+
+        Args:
+            response: Response from MCP server resource
+
+        Returns:
+            Extracted text content
+        """
+        if not response:
+            return ""
+
+        content = response[0]
+        if isinstance(content, TextResourceContents):
+            return content.text
+        return str(content)
 
     async def get_markets_resource(self) -> str:
         """Get information about all available markets as a resource."""
         result = await self.client.read_resource("whitebit://markets")
-        return result[0].text
+        return self._extract_resource_text(result)
 
     async def get_market_resource(self, market: str) -> str:
         """Get information about a specific market as a resource."""
         result = await self.client.read_resource(f"whitebit://markets/{market}")
-        return result[0].text
+        return self._extract_resource_text(result)
 
     async def get_assets_resource(self) -> str:
         """Get status of all assets as a resource."""
         result = await self.client.read_resource("whitebit://assets")
-        return result[0].text
+        return self._extract_resource_text(result)
 
     async def get_asset_resource(self, asset: str) -> str:
         """Get status of a specific asset as a resource."""
         result = await self.client.read_resource(f"whitebit://assets/{asset}")
-        return result[0].text
+        return self._extract_resource_text(result)

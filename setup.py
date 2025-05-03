@@ -8,7 +8,7 @@ exchange API.
 from setuptools import find_packages, setup
 
 # Read the long description from README.md
-with open("README.md", "r", encoding="utf-8") as fh:
+with open("README.md", encoding="utf-8") as fh:
     long_description = fh.read()
 
 # Define development requirements
@@ -23,7 +23,7 @@ development_requires = [
 
 setup(
     name="aiowhitebit-mcp",
-    version="0.2.3",
+    version="0.2.4",
     description="MCP server and client for WhiteBit cryptocurrency exchange API",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -33,7 +33,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "aiowhitebit==0.2.0",
+        "aiowhitebit==0.2.1",
         "fastmcp==2.2.5",
         "pydantic>=2.0.0",
         "aiohttp>=3.8.0",

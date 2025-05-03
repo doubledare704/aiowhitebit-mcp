@@ -1,6 +1,7 @@
 """Command-line interface for running the WhiteBit MCP server."""
 
 import argparse
+import asyncio
 
 from .server import create_server
 
@@ -30,11 +31,9 @@ def main():
 
     # Run with the specified transport
     if args.transport == "stdio":
-        server.run(transport="stdio")
+        asyncio.run(server.run(transport="stdio"))
     elif args.transport == "sse":
-        server.run(transport="sse", host=args.host, port=args.port)
-    elif args.transport == "ws":
-        server.run(transport="ws", host=args.host, port=args.port)
+        asyncio.run(server.run(transport="sse", host=args.host, port=args.port))
 
 
 if __name__ == "__main__":

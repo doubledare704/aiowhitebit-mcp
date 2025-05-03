@@ -19,12 +19,14 @@ from aiowhitebit_mcp.rate_limiter import get_rate_limiter
 # Set up logging
 logger = logging.getLogger(__name__)
 
+
 # Load HTML templates from files
 def load_template(filename):
     """Load a template from a file."""
     template_dir = os.path.join(os.path.dirname(__file__), "templates")
-    with open(os.path.join(template_dir, filename), "r") as f:
+    with open(os.path.join(template_dir, filename)) as f:
         return f.read()
+
 
 # Load templates
 HTML_TEMPLATE = load_template("base.html")

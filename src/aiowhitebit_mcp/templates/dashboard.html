@@ -55,10 +55,10 @@
 <script>
     var ctx = document.getElementById('metricsChart').getContext('2d');
     var chartConfig = {{
-        type: 'bar',
+        'bar',
         data: {{
-            labels: {metrics_labels},
-            datasets: [{{
+            {metrics_labels},
+            [{{
                 label: 'Request Count',
                 data: {metrics_data},
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
@@ -66,13 +66,13 @@
                 borderWidth: 1
             }}]
         }},
-        options: {{
-            scales: {{
-                y: {{
-                    beginAtZero: true
+        {{
+            {{
+                {{
+                    true
                 }}
             }}
         }}
-    }};
+    }}
     var chart = new Chart(ctx, chartConfig);
 </script>

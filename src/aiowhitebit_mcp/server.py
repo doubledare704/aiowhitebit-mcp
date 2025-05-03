@@ -268,24 +268,6 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
             result = await self.public_v4.get_asset_status_list()
             return {"assets": list(result)}  # Convert AssetStatus to a regular list and wrap in dict
 
-        @self.mcp.tool()
-        async def get_kline(market: MarketPair, interval: str, start_time: int, end_time: int) -> dict:
-            """Get kline (candlestick) data for a specific market.
-
-            Args:
-                market: Market pair (e.g., 'BTC_USDT')
-                interval: Kline interval (e.g., '1m', '1h', '1d')
-                start_time: Start time in seconds
-                end_time: End time in seconds
-            """
-            logger.debug(
-                f"Tool call: get_kline for {market.market} with "
-                f"interval={interval}, start_time={start_time}, end_time={end_time}"
-            )
-            result = await self.public_v4.get_kline(market.market, interval, start_time, end_time)
-            logger.debug(f"get_kline result: {len(result)} klines")
-            return {"klines": list(result)}  # Convert Kline to a regular list and wrap in dict
-
         logger.debug("Public v4 API tools registered successfully")
 
     def _register_public_tools(self):
@@ -331,7 +313,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
                 return {"status": "not_connected"}
 
             logger.debug("Disconnecting from WebSocket")
-            await self.ws_client.disconnect()
+            await self.ws_client.disconnect()  # type: ignore
             logger.debug("Disconnected from WebSocket")
 
             return {"status": "disconnected"}
@@ -372,7 +354,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
         # Register monitoring tools
         @self.mcp.tool()
-        async def health(self) -> dict[str, Any]:
+        async def health() -> dict[str, Any]:
             """Get the health status of the WhiteBit MCP server."""
             result = await monitoring_server.health_check.run_checks()
             return result
@@ -462,7 +444,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         # Close websocket client if it exists
         if self.ws_client:
             logger.debug("Closing websocket client")
-            await self.ws_client.close()
+            await self.ws_client.close()  # type: ignore
             logger.debug("Websocket client closed")
 
         # Stop web interface if it was started

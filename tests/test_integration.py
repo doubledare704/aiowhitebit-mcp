@@ -106,12 +106,14 @@ async def test_get_assets():
         assert isinstance(data, dict)
         assert "assets" in data
         assets = data["assets"]
-        assert isinstance(assets, dict)
+        assert isinstance(assets, list)
         assert len(assets) > 0
-        assert "BTC" in assets
-        btc = assets["BTC"]
-        assert isinstance(btc, dict)
-        assert "name" in btc
+        for a in assets:
+            assert isinstance(a, dict)
+            assert "asset_name" in a
+            if a["asset_name"] == "BTC":
+                assert "Bitcoin" in a["name"]
+                break
         print("✅ get_assets test passed")
     await server.close()
 

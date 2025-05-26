@@ -75,27 +75,25 @@ class WhiteBitMCPClient:
         result = await self.client.call_tool("get_asset_status_list", {})
         return self._extract_text(result)
 
-    async def get_orderbook(self, market: str, limit: int = 100, level: int = 0) -> str:
+    async def get_orderbook(self, market: str) -> str:
         """Get orderbook for a specific market.
 
         Args:
             market: Market pair (e.g., 'BTC_USDT')
-            limit: Number of orders to return (default: 100)
-            level: Aggregation level (default: 0)
         """
         result = await self.client.call_tool(
-            "get_orderbook", {"market": {"market": market}, "limit": limit, "level": level}
+            "get_orderbook", {"market": market}
         )
         return self._extract_text(result)
 
-    async def get_recent_trades(self, market: str, limit: int = 100) -> str:
+    async def get_recent_trades(self, market: str, trade_type: str = "buy") -> str:
         """Get recent trades for a specific market.
 
         Args:
             market: Market pair (e.g., 'BTC_USDT')
-            limit: Number of trades to return (default: 100)
+            trade_type: Type of trade (buy or sell, default: buy)
         """
-        result = await self.client.call_tool("get_recent_trades", {"market": {"market": market}, "limit": limit})
+        result = await self.client.call_tool("get_recent_trades", {"market": market, "trade_type": trade_type})
         return self._extract_text(result)
 
     async def get_fee(self, market: str) -> str:

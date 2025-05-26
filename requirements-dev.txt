@@ -1,9 +1,9 @@
 # Development dependencies
-pytest==8.3.5
-pytest-asyncio==0.26.0
+pytest~=8.3.5
+pytest-asyncio~=1.0.0
 pytest-cov==6.1.1
-ruff==0.11.7
-pyright==1.1.400
+ruff==0.11.11
+pyright==1.1.401
 pre-commit==4.2.0
 
 # Project dependencies

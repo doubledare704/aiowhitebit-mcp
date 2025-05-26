@@ -213,12 +213,12 @@ class PublicV4ClientProxy:
     @optimized(ttl_seconds=10, rate_limit_name="get_recent_trades")  # Recent trades change frequently
     @circuit_breaker(name="public_v4_get_recent_trades", failure_threshold=3, recovery_timeout=30.0, timeout=5.0)
     @rate_limited("get_recent_trades")
-    async def get_recent_trades(self, market: str, limit: int = 100) -> list[RecentTrades]:
+    async def get_recent_trades(self, market: str, trade_type: str = "buy") -> list[RecentTrades]:
         """Get recent trades for a specific market.
 
         Args:
             market: Market pair (e.g., 'BTC_USDT')
-            limit: Number of trades to return (default: 100)
+            trade_type: type buy or sell (default: buy)
 
         Returns:
             List[RecentTrades]: List of recent trades
@@ -227,8 +227,8 @@ class PublicV4ClientProxy:
             Exception: If there is an error communicating with the WhiteBit API
         """
         try:
-            logger.debug(f"Calling get_recent_trades for {market} with limit={limit}")
-            result = await self._original_client.get_recent_trades(market, str(limit))
+            logger.debug(f"Calling get_recent_trades for {market} with {trade_type=}")
+            result = await self._original_client.get_recent_trades(market, trade_type)
             logger.debug(f"get_recent_trades result: {result}")
             return cast("list[RecentTrades]", [result])
         except Exception as e:

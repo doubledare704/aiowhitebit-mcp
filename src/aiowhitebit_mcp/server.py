@@ -243,13 +243,15 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
             return {"orderbook": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
 
         @self.mcp.tool()
-        async def get_recent_trades(market: MarketPair) -> dict:
+        async def get_recent_trades(market: MarketPair, trade_type: str = "buy") -> dict:
             """Get recent trades for a specific market.
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
+                :param market:
+                :param trade_type:
             """
-            result = await self.public_v4.get_recent_trades(market.market)
+            result = await self.public_v4.get_recent_trades(market.market, trade_type)
             return {"trades": list(result)}  # Convert RecentTrades to a regular list and wrap in dict
 
         @self.mcp.tool()

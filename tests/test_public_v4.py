@@ -151,11 +151,11 @@ async def test_recent_trades():
             trades = data["trades"]
             assert isinstance(trades, list)
             assert len(trades) > 0
-            first_trade = trades[0]
+            first_trade = trades[0][0]
             assert isinstance(first_trade, dict)
-            assert "id" in first_trade
+            assert "tradeID" in first_trade
             assert "price" in first_trade
-            assert "amount" in first_trade
+            assert "quote_volume" in first_trade
             assert "type" in first_trade
         finally:
             await server.close()

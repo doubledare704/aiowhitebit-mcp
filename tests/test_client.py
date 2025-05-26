@@ -6,7 +6,7 @@ import logging
 import pytest
 
 from aiowhitebit_mcp.client import WhiteBitMCPClient
-from aiowhitebit_mcp.server import create_server
+from aiowhitebit_mcp.server import create_server, MarketPair
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -93,7 +93,8 @@ async def test_get_server_status(server):
 async def test_get_orderbook(server):
     """Test get_orderbook method."""
     async with WhiteBitMCPClient(server.mcp) as client:
-        result = await client.get_orderbook("BTC_USDT", limit=50, level=2)
+        market = MarketPair(market="BTC_USDT")
+        result = await client.get_orderbook(market)
         data = json.loads(result)
 
         assert isinstance(data, dict)
@@ -110,7 +111,8 @@ async def test_get_orderbook(server):
 async def test_get_recent_trades(server):
     """Test get_recent_trades method."""
     async with WhiteBitMCPClient(server.mcp) as client:
-        result = await client.get_recent_trades("BTC_USDT", limit=50)
+        market = MarketPair(market="BTC_USDT")
+        result = await client.get_recent_trades(market, trade_type="buy")
         data = json.loads(result)
 
         assert isinstance(data, dict)

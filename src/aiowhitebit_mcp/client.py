@@ -81,9 +81,7 @@ class WhiteBitMCPClient:
         Args:
             market: Market pair (e.g., 'BTC_USDT')
         """
-        result = await self.client.call_tool(
-            "get_orderbook", {"market": market}
-        )
+        result = await self.client.call_tool("get_orderbook", {"market": market})
         return self._extract_text(result)
 
     async def get_recent_trades(self, market: str, trade_type: str = "buy") -> str:

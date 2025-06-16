@@ -6,7 +6,7 @@ import logging
 import pytest
 
 from aiowhitebit_mcp.client import WhiteBitMCPClient
-from aiowhitebit_mcp.server import create_server, MarketPair
+from aiowhitebit_mcp.server import MarketPair, create_server
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

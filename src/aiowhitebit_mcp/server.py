@@ -248,8 +248,7 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
 
             Args:
                 market: Market pair (e.g., 'BTC_USDT')
-                :param market:
-                :param trade_type:
+                trade_type: Type of trades to retrieve ('buy' or 'sell')
             """
             result = await self.public_v4.get_recent_trades(market.market, trade_type)
             return {"trades": list(result)}  # Convert RecentTrades to a regular list and wrap in dict

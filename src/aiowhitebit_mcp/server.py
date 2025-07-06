@@ -472,8 +472,8 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         logger.info(f"Starting {self.name} server with {transport} transport")
 
         # FastMCP only supports "stdio" and "sse" transports
-        if transport not in ["stdio", "sse"]:
-            raise ValueError(f"Unsupported transport: {transport}. Use 'stdio' or 'sse'.")
+        if transport not in ["stdio", "sse", "http"]:
+            raise ValueError(f"Unsupported transport: {transport}. Use 'stdio' or 'sse' or 'http'.")
 
         # Prepare transport kwargs
         transport_kwargs = {}

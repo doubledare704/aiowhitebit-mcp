@@ -23,7 +23,7 @@ development_requires = [
 
 setup(
     name="aiowhitebit-mcp",
-    version="0.2.6",
+    version="0.2.7",
     description="MCP server and client for WhiteBit cryptocurrency exchange API",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -33,8 +33,8 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "aiowhitebit==0.2.4",
-        "fastmcp==2.8.1",
+        "aiowhitebit==0.2.5",
+        "fastmcp==2.10.2",
         "pydantic>=2.11.7",
         "aiohttp>=3.12.13",
     ],

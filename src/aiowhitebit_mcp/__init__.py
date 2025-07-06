@@ -3,4 +3,4 @@
 Provides Message Control Protocol (MCP) server and client for WhiteBit exchange.
 """
 
-__version__ = "0.2.5"
+__version__ = "0.2.7"

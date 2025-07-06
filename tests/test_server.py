@@ -6,11 +6,15 @@ of the MCP server implementation for the WhiteBit exchange API.
 
 import json
 import logging
+from typing import TYPE_CHECKING
 
 import pytest
 from fastmcp.client import Client
 
 from aiowhitebit_mcp.server import create_server
+
+if TYPE_CHECKING:
+    from mcp.types import CallToolResult
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s:%(name)s:%(message)s")
 log = logging.getLogger(__name__)
@@ -24,15 +28,10 @@ async def test_server_time():
     try:
         async with Client(server.mcp) as client:
             log.debug("test_server_time: Awaiting client.call_tool('get_server_time')...")
-            response = await client.call_tool("get_server_time")
+            response: CallToolResult = await client.call_tool("get_server_time")
             log.debug(f"test_server_time: client.call_tool returned: {type(response)}")
 
-            assert isinstance(response, list)
-            log.debug("test_server_time: Assertion 1 passed")
-            assert len(response) > 0
-            log.debug("test_server_time: Assertion 2 passed")
-
-            content = response[0]
+            content = response.content[0]
             log.debug(f"test_server_time: Got content: {type(content)}")
             assert hasattr(content, "text")
             log.debug("test_server_time: Assertion 3 passed")
@@ -66,11 +65,9 @@ async def test_market_info():
     server = create_server(name="WhiteBit MCP Test")
     try:
         async with Client(server.mcp) as client:
-            response = await client.call_tool("get_market_info", {})
-            assert isinstance(response, list)
-            assert len(response) > 0
+            response: CallToolResult = await client.call_tool("get_market_info", {})
 
-            content = response[0]
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)

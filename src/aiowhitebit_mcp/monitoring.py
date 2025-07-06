@@ -132,7 +132,7 @@ class MonitoringServer:
             Args:
                 name: The name of the circuit breaker to reset
             """
-            success = reset_circuit_breaker(name)
+            success = reset_circuit_breaker(name)  # type: ignore
             if success:
                 return {"status": "ok", "message": f"Circuit breaker {name} reset successfully"}
             else:

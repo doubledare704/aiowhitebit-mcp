@@ -5,10 +5,14 @@ This module contains tests for all the wrapped calls to the public v4 client.
 
 import json
 import logging
+from typing import TYPE_CHECKING
 
 from fastmcp.client import Client
 
 from aiowhitebit_mcp.server import MarketPair, create_server
+
+if TYPE_CHECKING:
+    from mcp.types import CallToolResult
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -20,11 +24,8 @@ async def test_server_time():
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
-            response = await client.call_tool("get_server_time", {})
-            assert isinstance(response, list)
-            assert len(response) > 0
-
-            content = response[0]
+            response: CallToolResult = await client.call_tool("get_server_time", {})
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)
@@ -42,11 +43,8 @@ async def test_server_status():
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
-            response = await client.call_tool("get_server_status", {})
-            assert isinstance(response, list)
-            assert len(response) > 0
-
-            content = response[0]
+            response: CallToolResult = await client.call_tool("get_server_status", {})
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)
@@ -62,11 +60,8 @@ async def test_market_info():
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
-            response = await client.call_tool("get_market_info", {})
-            assert isinstance(response, list)
-            assert len(response) > 0
-
-            content = response[0]
+            response: CallToolResult = await client.call_tool("get_market_info", {})
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)
@@ -89,11 +84,8 @@ async def test_market_activity():
     server = create_server(name="WhiteBit MCP Test")
     async with Client(server.mcp) as client:
         try:
-            response = await client.call_tool("get_market_activity", {})
-            assert isinstance(response, list)
-            assert len(response) > 0
-
-            content = response[0]
+            response: CallToolResult = await client.call_tool("get_market_activity", {})
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)
@@ -114,10 +106,7 @@ async def test_orderbook():
     async with Client(server.mcp) as client:
         try:
             response = await client.call_tool("get_orderbook", {"market": MarketPair(market="BTC_USDT")})
-            assert isinstance(response, list)
-            assert len(response) > 0
-
-            content = response[0]
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)
@@ -139,10 +128,7 @@ async def test_recent_trades():
     async with Client(server.mcp) as client:
         try:
             response = await client.call_tool("get_recent_trades", {"market": MarketPair(market="BTC_USDT")})
-            assert isinstance(response, list)
-            assert len(response) > 0
-
-            content = response[0]
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)
@@ -167,10 +153,7 @@ async def test_fee():
     async with Client(server.mcp) as client:
         try:
             response = await client.call_tool("get_fee", {"market": MarketPair(market="BTC")})
-            assert isinstance(response, list)
-            assert len(response) > 0
-
-            content = response[0]
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)
@@ -192,10 +175,7 @@ async def test_asset_status_list():
     async with Client(server.mcp) as client:
         try:
             response = await client.call_tool("get_asset_status_list", {})
-            assert isinstance(response, list)
-            assert len(response) > 0
-
-            content = response[0]
+            content = response.content[0]
             assert hasattr(content, "text")
 
             data = json.loads(content.text)

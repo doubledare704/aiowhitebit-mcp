@@ -3,7 +3,8 @@
 import os
 
 from fastmcp.client import Client
-from mcp.types import BlobResourceContents, EmbeddedResource, ImageContent, TextContent, TextResourceContents
+from fastmcp.client.client import CallToolResult
+from mcp.types import BlobResourceContents, TextContent, TextResourceContents
 
 
 class WhiteBitMCPClient:
@@ -33,7 +34,7 @@ class WhiteBitMCPClient:
         """Async context manager exit."""
         await self.client.__aexit__(exc_type, exc_val, exc_tb)
 
-    def _extract_text(self, response: list[TextContent | ImageContent | EmbeddedResource]) -> str:
+    def _extract_text(self, response: CallToolResult) -> str:
         """Extract text from response content.
 
         Args:
@@ -45,7 +46,7 @@ class WhiteBitMCPClient:
         if not response:
             return ""
 
-        content = response[0]
+        content = response.content[0]
         if isinstance(content, TextContent):
             return content.text
         return str(content)

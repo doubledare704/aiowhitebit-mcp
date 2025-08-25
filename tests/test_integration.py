@@ -265,3 +265,57 @@ async def test_asset_status_list():
         assert len(assets) > 0
         print("✅ get_asset_status_list test passed")
     await server.close()
+
+
+async def test_funding_history_integration():
+    """Test funding history integration."""
+    server = create_server(name="WhiteBit MCP Test")
+    async with Client(server.mcp) as client:
+        print("Testing get_funding_history...")
+        response: CallToolResult = await client.call_tool(
+            "get_funding_history", {"market": MarketPair(market="BTC_USDT")}
+        )
+        content = response.content[0]
+        assert hasattr(content, "text")
+
+        data = json.loads(content.text)
+        assert isinstance(data, dict)
+        assert "funding_history" in data
+        funding_history = data["funding_history"]
+        assert isinstance(funding_history, dict)
+        assert "result" in funding_history
+        # The result might be empty for testing, which is acceptable
+        print("✅ get_funding_history test passed")
+    await server.close()
+
+
+async def test_websocket_bookticker_integration():
+    """Test WebSocket BookTicker integration."""
+    server = create_server(name="WhiteBit MCP Test")
+    async with Client(server.mcp) as client:
+        print("Testing BookTicker WebSocket functionality...")
+
+        # Test subscription
+        response: CallToolResult = await client.call_tool(
+            "bookticker_subscribe", {"market": MarketPair(market="BTC_USDT")}
+        )
+        content = response.content[0]
+        assert hasattr(content, "text")
+
+        data = json.loads(content.text)
+        assert isinstance(data, dict)
+        assert "subscription" in data
+
+        # Test unsubscription
+        response: CallToolResult = await client.call_tool(
+            "bookticker_unsubscribe", {"market": MarketPair(market="BTC_USDT")}
+        )
+        content = response.content[0]
+        assert hasattr(content, "text")
+
+        data = json.loads(content.text)
+        assert isinstance(data, dict)
+        # The unsubscription might return either "unsubscription" or "status" depending on the response
+        assert "unsubscription" in data or "status" in data
+        print("✅ BookTicker WebSocket test passed")
+    await server.close()

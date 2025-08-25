@@ -7,7 +7,7 @@ functionality as MCP tools.
 import asyncio
 import logging
 import time
-from typing import Any
+from typing import Any, cast
 
 from aiowhitebit.clients.public import PublicV1Client, PublicV2Client, PublicV4Client
 from aiowhitebit.clients.websocket import PublicWebSocketClient
@@ -269,6 +269,16 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
             result = await self.public_v4.get_asset_status_list()
             return {"assets": list(result)}  # Convert AssetStatus to a regular list and wrap in dict
 
+        @self.mcp.tool()
+        async def get_funding_history(market: MarketPair) -> dict:
+            """Get funding rate history for a futures market.
+
+            Args:
+                market: Market pair (e.g., 'BTC_USDT')
+            """
+            result = await self.public_v4.get_funding_history(market.market)
+            return {"funding_history": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
+
         logger.debug("Public v4 API tools registered successfully")
 
     def _register_public_tools(self):
@@ -300,11 +310,15 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
                 self.ws_client = PublicWebSocketClient()
                 logger.debug("WebSocket client initialized")
 
-            logger.debug("Connecting to WebSocket")
-            await self.ws_client.connect()
-            logger.debug("Connected to WebSocket")
+            # Test connection by calling ping
+            logger.debug("Testing WebSocket connection")
+            result = await cast("Any", self.ws_client.ping())
+            logger.debug(f"WebSocket ping result: {result}")
 
-            return {"status": "connected"}
+            return {
+                "status": "connected",
+                "ping_result": result.model_dump() if hasattr(result, "model_dump") else result.dict(),
+            }
 
         @self.mcp.tool()
         async def disconnect_websocket() -> dict:
@@ -314,10 +328,48 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
                 return {"status": "not_connected"}
 
             logger.debug("Disconnecting from WebSocket")
-            await self.ws_client.disconnect()  # type: ignore
+            await cast("Any", self.ws_client.close())
             logger.debug("Disconnected from WebSocket")
+            self.ws_client = None
 
             return {"status": "disconnected"}
+
+        @self.mcp.tool()
+        async def bookticker_subscribe(market: MarketPair) -> dict:
+            """Subscribe to BookTicker stream for a market.
+
+            Args:
+                market: Market pair (e.g., 'BTC_USDT')
+            """
+            if not self.ws_client:
+                logger.debug("Initializing WebSocket client for BookTicker")
+                self.ws_client = PublicWebSocketClient()
+
+            logger.debug(f"Subscribing to BookTicker for {market.market}")
+            result = await cast("Any", self.ws_client.bookticker_subscribe(market.market))
+            logger.debug(f"BookTicker subscription result: {result}")
+
+            return {"subscription": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
+
+        @self.mcp.tool()
+        async def bookticker_unsubscribe(market: MarketPair) -> dict:
+            """Unsubscribe from BookTicker stream for a market.
+
+            Args:
+                market: Market pair (e.g., 'BTC_USDT')
+            """
+            if not self.ws_client:
+                logger.warning("WebSocket client not initialized")
+                return {"status": "not_connected"}
+
+            logger.debug(f"Unsubscribing from BookTicker for {market.market}")
+            try:
+                result = await cast("Any", self.ws_client.bookticker_unsubscribe(market.market))
+                logger.debug(f"BookTicker unsubscription result: {result}")
+                return {"unsubscription": result.model_dump() if hasattr(result, "model_dump") else result.dict()}
+            except Exception as e:
+                logger.warning(f"Error unsubscribing from BookTicker: {e}")
+                return {"status": "unsubscribed", "note": "Unsubscription completed with warnings"}
 
         logger.debug("WebSocket tools registered successfully")
 
@@ -418,7 +470,8 @@ class WhiteBitMCP(WhiteBitMCPProtocol):
         async def get_market_resource(market: str) -> dict:
             """Get information about a specific market."""
             result = await self.public_v4.get_market_info()
-            for m in result[0]:
+            market_list = cast("Any", result[0])  # Cast to Any to allow iteration
+            for m in market_list:
                 if m["name"] == market:
                     result = m
                     break

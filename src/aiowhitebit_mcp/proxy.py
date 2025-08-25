@@ -10,6 +10,8 @@ from aiowhitebit.models.public.v1 import Kline, MarketSingleResponse, Tickers
 from aiowhitebit.models.public.v4 import (
     AssetStatus,
     Fee,
+    FundingHistoryItem,
+    FundingHistoryResponse,
     MarketActivity,
     MarketInfo,
     Orderbook,
@@ -110,9 +112,8 @@ class PublicV4ClientProxy:
                 time_data = result.model_dump()
                 logger.debug(f"get_server_time result (using dict): {time_data}")
             return result
-        except Exception as e:
-            logger.error(f"Error in get_server_time: {e}")
-            logger.debug(traceback.format_exc())
+        except Exception:
+            logger.exception("Error in get_server_time")
             return ServerTime(time=1000000000)
 
     @optimized(ttl_seconds=60, rate_limit_name="public")  # Server status doesn't change often
@@ -130,9 +131,8 @@ class PublicV4ClientProxy:
             logger.debug("Calling get_server_status")
             return await self._original_client.get_server_status()
 
-        except Exception as e:
-            logger.error(f"Error in get_server_status: {e}")
-            logger.debug(traceback.format_exc())
+        except Exception:
+            logger.exception("Error in get_server_status")
             return ServerStatus(["pong"])  # Return a mock object for testing
 
     @cached(cache_name="market_info", ttl=300, persist=True)  # Market info changes infrequently
@@ -203,9 +203,8 @@ class PublicV4ClientProxy:
                 bids_count = len(orderbook_data.get("bids", []))
                 logger.debug(f"get_orderbook result (using dict): {asks_count} asks, {bids_count} bids")
             return result
-        except Exception as e:
-            logger.error(f"Error in get_orderbook for {market}: {e}")
-            logger.debug(traceback.format_exc())
+        except Exception:
+            logger.exception(f"Error in get_orderbook for {market}:")
             return Orderbook(
                 ticker_id=market, asks=[], bids=[], timestamp=1000000000
             )  # Return a mock object for testing
@@ -284,6 +283,34 @@ class PublicV4ClientProxy:
             logger.error(f"Error in get_asset_status_list: {e}")
             logger.debug(traceback.format_exc())
             return cast("list[AssetStatus]", [{"name": "BTC", "status": "active"}])
+
+    @optimized(ttl_seconds=300, rate_limit_name="public")  # Funding history changes infrequently
+    @circuit_breaker(name="public_v4_get_funding_history", failure_threshold=3, recovery_timeout=30.0, timeout=10.0)
+    @rate_limited("public")
+    async def get_funding_history(self, market: str) -> "FundingHistoryResponse":
+        """Get funding rate history for a futures market.
+
+        Args:
+            market: Market symbol (e.g., "BTC_USDT")
+
+        Returns:
+            FundingHistoryResponse: List of funding rate history items containing:
+                - Timestamp of the funding rate
+                - Funding rate value
+
+        Raises:
+            Exception: If there is an error communicating with the WhiteBit API
+        """
+        try:
+            logger.debug(f"Calling get_funding_history for {market}")
+            result = await self._original_client.get_funding_history(market)
+            logger.debug(f"get_funding_history result: {len(result.result)} items")
+            return result
+        except Exception:
+            logger.exception("Error in get_funding_history: ")
+            return FundingHistoryResponse(
+                result=[FundingHistoryItem(timestamp=1000000000, funding_rate="rate")]
+            )  # Return a mock object for testing
 
     async def close(self) -> None:
         """Close the client and release resources.

@@ -1,6 +1,6 @@
-aiowhitebit==0.2.5
-fastmcp==2.10.2
+aiowhitebit==0.3.0
+fastmcp==2.11.3
 
 pydantic~=2.11.7
-aiohttp~=3.12.13
+aiohttp~=3.12.15
 setuptools~=80.9.0

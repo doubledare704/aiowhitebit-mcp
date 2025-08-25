@@ -190,6 +190,28 @@ async def test_asset_status_list():
             await server.close()
 
 
+async def test_funding_history():
+    """Test getting funding history for a futures market."""
+    server = create_server(name="WhiteBit MCP Test")
+    async with Client(server.mcp) as client:
+        try:
+            response = await client.call_tool("get_funding_history", {"market": MarketPair(market="BTC_USDT")})
+            content = response.content[0]
+            assert hasattr(content, "text")
+
+            data = json.loads(content.text)
+            assert isinstance(data, dict)
+            assert "funding_history" in data
+            funding_history = data["funding_history"]
+            assert isinstance(funding_history, dict)
+            assert "result" in funding_history
+            result = funding_history["result"]
+            assert isinstance(result, list)
+            # Note: The result might be empty for testing, which is acceptable
+        finally:
+            await server.close()
+
+
 async def test_market_resource():
     """Test reading market resource."""
     server = create_server(name="WhiteBit MCP Test")

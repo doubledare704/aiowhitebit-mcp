@@ -16,6 +16,12 @@ top of [aiowhitebit](https://github.com/doubledare704/aiowhitebit) library and [
 - Caching with disk persistence
 - Rate limiting and circuit breaker patterns
 
+### New in aiowhitebit 0.3.0 Integration
+
+- **BookTicker WebSocket Streams**: Real-time best bid/ask price updates
+- **Funding History for Futures**: Access historical funding rates for futures markets
+- **Enhanced WebSocket Events**: All WebSocket events now include optional metadata (event_time, update_id)
+
 ## Quick Start
 
 ```bash
@@ -56,6 +62,14 @@ async def main():
         orderbook = await client.get_orderbook("BTC_USDT")
         print("Order book:", orderbook)
 
+        # Get funding history for futures market
+        funding_history = await client.get_funding_history("BTC_USDT")
+        print("Funding history:", funding_history)
+
+        # Subscribe to BookTicker for real-time best bid/ask
+        subscription = await client.bookticker_subscribe("BTC_USDT")
+        print("BookTicker subscription:", subscription)
+
 if __name__ == "__main__":
     asyncio.run(main())
 ```
@@ -93,10 +107,15 @@ if __name__ == "__main__":
 - `get_fee(market: str)`: Get trading fees
 - `get_server_status()`: Get server status
 - `get_asset_status_list()`: Get status of all assets
+- `get_funding_history(market: str)`: Get funding rate history for futures markets
 
 ### WebSocket API
 - `get_last_price(market: str)`: Get real-time price
 - `get_market_depth(market: str)`: Get real-time order book
+- `bookticker_subscribe(market: str)`: Subscribe to BookTicker stream for best bid/ask prices
+- `bookticker_unsubscribe(market: str)`: Unsubscribe from BookTicker stream
+- `connect_websocket()`: Connect to WebSocket API
+- `disconnect_websocket()`: Disconnect from WebSocket API
 
 ### Resources
 - `whitebit://markets`: Get all markets information

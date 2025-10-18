@@ -122,6 +122,33 @@ class WhiteBitMCPClient:
         result = await self.client.call_tool("get_market_depth", {"market": {"market": market}})
         return self._extract_text(result)
 
+    async def get_funding_history(self, market: str) -> str:
+        """Get funding rate history for a futures market.
+
+        Args:
+            market: Market pair (e.g., 'BTC_USDT')
+        """
+        result = await self.client.call_tool("get_funding_history", {"market": {"market": market}})
+        return self._extract_text(result)
+
+    async def bookticker_subscribe(self, market: str) -> str:
+        """Subscribe to BookTicker stream for a market.
+
+        Args:
+            market: Market pair (e.g., 'BTC_USDT')
+        """
+        result = await self.client.call_tool("bookticker_subscribe", {"market": {"market": market}})
+        return self._extract_text(result)
+
+    async def bookticker_unsubscribe(self, market: str) -> str:
+        """Unsubscribe from BookTicker stream for a market.
+
+        Args:
+            market: Market pair (e.g., 'BTC_USDT')
+        """
+        result = await self.client.call_tool("bookticker_unsubscribe", {"market": {"market": market}})
+        return self._extract_text(result)
+
     def _extract_resource_text(self, response: list[TextResourceContents | BlobResourceContents]) -> str:
         """Extract text from resource response.
 

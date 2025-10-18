@@ -127,7 +127,7 @@ class MetricsCollector:
     """Collector for WhiteBit MCP server metrics.
 
     This class collects metrics about the WhiteBit MCP server's performance
-    and usage, and provides methods for reporting those metrics.
+    and usage and provides methods for reporting those metrics.
     """
 
     def __init__(self):

@@ -13,17 +13,17 @@ with open("README.md", encoding="utf-8") as fh:
 
 # Define development requirements
 development_requires = [
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.1.0",
-    "pytest-cov>=6.2.1",
-    "ruff>=0.12.10",
-    "pyright>=1.1.404",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.1",
+    "pyright>=1.1.406",
     "pre-commit>=4.3.0",
 ]
 
 setup(
     name="aiowhitebit-mcp",
-    version="0.2.8",
+    version="0.3.0",
     description="MCP server and client for WhiteBit cryptocurrency exchange API",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -33,10 +33,10 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "aiowhitebit==0.3.0",
-        "fastmcp==2.11.3",
-        "pydantic>=2.11.7",
-        "aiohttp>=3.12.15",
+        "aiowhitebit==0.4.0",
+        "fastmcp==2.12.5",
+        "pydantic>=2.12.3",
+        "aiohttp>=3.13.1",
     ],
     entry_points={
         "console_scripts": [
